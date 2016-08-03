@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 public class Config {
 
 	private static final boolean PROD = true;
@@ -40,9 +42,9 @@ public class Config {
 			maxDownloadRetries = Integer.parseInt(prop.getProperty("maxDownloadRetries"));
 			LOGGER.info("configuration initialization done");
 		} catch (ClassNotFoundException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		} catch (IOException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
 	}
 

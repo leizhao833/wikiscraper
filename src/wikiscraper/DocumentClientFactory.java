@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
@@ -36,9 +38,9 @@ public class DocumentClientFactory {
 			LOGGER.info("successfully loaded master key");
 			return key;
 		} catch (FileNotFoundException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		} catch (IOException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
 		return null;
 	}

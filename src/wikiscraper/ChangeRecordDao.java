@@ -7,6 +7,8 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import com.google.gson.Gson;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClientException;
@@ -35,7 +37,7 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 		try {
 			doc = documentClient.createDocument(getCollection().getSelfLink(), doc, null, false).getResource();
 		} catch (DocumentClientException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 			return null;
 		}
 
@@ -69,7 +71,7 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 				deletedCount++;
 			}
 		} catch (DocumentClientException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
 		LOGGER.info(String.format("deleted %d change records older than %s", deletedCount, cutoff.toString()));
 		return deletedCount;

@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jsoup.nodes.Document;
 
 public class Main {
@@ -24,12 +25,16 @@ public class Main {
 	private static void initialize() {
 		FileHandler handler;
 		try {
+			File log = new File("log");
+			if (!log.exists()) {
+				log.mkdir();
+			}
 			handler = new FileHandler("log" + File.separator + "wikiscraper-log.%u.%g.txt", 1024 * 1024, 1000, true);
 			LOGGER.addHandler(handler);
 		} catch (SecurityException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		} catch (IOException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
 		Config.initialize();
 
@@ -41,7 +46,7 @@ public class Main {
 		try {
 			doc = ChangePageCrawler.getDocument(true, true);
 		} catch (Throwable t) {
-			LOGGER.severe(t.getMessage());
+			LOGGER.severe(ExceptionUtils.getStackTrace(t));
 		}
 
 		while (true) {
@@ -57,7 +62,7 @@ public class Main {
 				expiringRecords();
 				doc = ChangePageCrawler.getDocument(overlap, false);
 			} catch (Throwable t) {
-				LOGGER.severe(t.getMessage());
+				LOGGER.severe(ExceptionUtils.getStackTrace(t));
 			}
 		}
 	}

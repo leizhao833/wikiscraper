@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -57,7 +58,7 @@ public class ChangePageCrawler {
 				url = new URL(Config.wikiChangeUrl);
 			} catch (MalformedURLException e) {
 				LOGGER.severe(String.format("invalid url %s", Config.wikiChangeUrl));
-				LOGGER.severe(e.getMessage());
+				LOGGER.severe(ExceptionUtils.getStackTrace(e));
 				LOGGER.severe("sleep forever ...");
 				sleepUntil(LocalDateTime.now().plusYears(1));
 			}
