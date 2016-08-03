@@ -1,5 +1,7 @@
 package wikiscraper;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -7,33 +9,57 @@ import java.time.format.DateTimeFormatter;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		// testDatabaseAddCrawlRecord();
-		// testDatabaseAddChangeRecord();
-		// testDatabaseCreate();
-		// testDatetime();
+		testUrl();
+//		testDatabaseAddCrawlRecord();
+//		testDatabaseAddChangeRecord();
+//		testDatabaseCreate();
+//		testDatetime();
+	}
+
+	private static void testUrl() {
+//		String urlStr = "/wiki/Alfonso_Zirpoli";
+		String urlStr = "https://en.wikipedia.org/w/index.php?namespace=";
+
+		try {
+			URI url = new URI(urlStr);
+			if (!url.isAbsolute()) {
+				urlStr = new URI("https", "en.wikipedia.org", urlStr, null).toString();
+			}
+			System.out.println(urlStr);
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void testDatabaseAddCrawlRecord() {
-		CrawlRecordDao dao = new CrawlRecordDao();
+		CrawlRecordDao dao = CrawlRecordDao.INSTANCE;
 		ZonedDateTime crawlTime = ZonedDateTime.now();
-		ZonedDateTime changeTimeMin = ZonedDateTime.parse("2015-12-06T14:10:10Z");
-		ZonedDateTime changeTimeMax = ZonedDateTime.parse("2016-01-10T09:00:00Z");
-		CrawlRecordDoc doc = new CrawlRecordDoc(crawlTime, changeTimeMin, changeTimeMax);
-		System.out.println(String.format("Adding entry: %s, %b", doc.toString(), dao.add(doc)));
-		System.out.println(String.format("Adding entry: %s, %b", doc.toString(), dao.add(doc)));
+		ZonedDateTime changeTimeMin = ZonedDateTime
+				.parse("2015-12-06T14:10:10Z");
+		ZonedDateTime changeTimeMax = ZonedDateTime
+				.parse("2016-01-10T09:00:00Z");
+		CrawlRecordDoc doc = new CrawlRecordDoc(crawlTime, changeTimeMin,
+				changeTimeMax);
+		System.out.println(String.format("Adding entry: %s, %b",
+				doc.toString(), dao.add(doc)));
+		System.out.println(String.format("Adding entry: %s, %b",
+				doc.toString(), dao.add(doc)));
 	}
 
 	private static void testDatabaseAddChangeRecord() {
-		ChangeRecordDao dao = new ChangeRecordDao();
+		ChangeRecordDao dao = ChangeRecordDao.INSTANCE;
 		ZonedDateTime now = ZonedDateTime.now();
 		ChangeRecordDoc doc = new ChangeRecordDoc("http://www.foo.com", now);
-		System.out.println(String.format("Adding entry: %s, %b", doc.toString(), dao.add(doc)));
-		System.out.println(String.format("Adding entry: %s, %b", doc.toString(), dao.add(doc)));
+		System.out.println(String.format("Adding entry: %s, %b",
+				doc.toString(), dao.add(doc)));
+		System.out.println(String.format("Adding entry: %s, %b",
+				doc.toString(), dao.add(doc)));
 	}
 
 	private static void testDatabaseCreate() {
-		ChangeRecordDao dao = new ChangeRecordDao();
-		ChangeRecordDoc doc = new ChangeRecordDoc("http://www.test.com", ZonedDateTime.now());
+		ChangeRecordDao dao = ChangeRecordDao.INSTANCE;
+		ChangeRecordDoc doc = new ChangeRecordDoc("http://www.test.com",
+				ZonedDateTime.now());
 		dao.create(doc);
 		System.out.println(doc);
 

@@ -11,9 +11,14 @@ import com.microsoft.azure.documentdb.DocumentClientException;
 
 public class ChangeRecordDao extends WikiChangeCollectionDao {
 
+	public static final ChangeRecordDao INSTANCE = new ChangeRecordDao();
+
 	private static Gson gson = new Gson();
 
 	private final String QRY_EXACT_DOC = "SELECT * FROM c WHERE c.url = '%s' AND c.timestamp = %d";
+
+	private ChangeRecordDao() {
+	}
 
 	@Override
 	protected String getCollectionId() {
@@ -24,7 +29,8 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 		Document doc = new Document(gson.toJson(record));
 
 		try {
-			doc = documentClient.createDocument(getCollection().getSelfLink(), doc, null, false).getResource();
+			doc = documentClient.createDocument(getCollection().getSelfLink(),
+					doc, null, false).getResource();
 		} catch (DocumentClientException e) {
 			e.printStackTrace();
 			return null;
@@ -42,8 +48,10 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 	}
 
 	public boolean exist(ChangeRecordDoc record) {
-		String queryStr = String.format(QRY_EXACT_DOC, record.url, record.timestamp);
-		List<Document> docList = documentClient.queryDocuments(getCollection().getSelfLink(), queryStr, null)
+		String queryStr = String.format(QRY_EXACT_DOC, record.url,
+				record.timestamp);
+		List<Document> docList = documentClient
+				.queryDocuments(getCollection().getSelfLink(), queryStr, null)
 				.getQueryIterable().toList();
 		return docList.size() > 0;
 	}

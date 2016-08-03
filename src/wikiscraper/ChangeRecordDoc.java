@@ -27,7 +27,12 @@ public class ChangeRecordDoc {
 	}
 
 	public ZonedDateTime timestampAsZonedDateTime() {
-		return ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneOffset.UTC);
+		return ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp),
+				ZoneOffset.UTC);
 	}
 
+	public void copyTo(ChangeRecordDoc other) {
+		other.url = url;
+		other.timestamp = timestamp;
+	}
 }
