@@ -38,6 +38,7 @@ public class Config {
 			crawlIntervalMaxInSeconds = Long.parseLong(prop.getProperty("crawlIntervalMaxInSeconds"));
 			crawlIntervalIncInSeconds = Long.parseLong(prop.getProperty("crawlIntervalIncInSeconds"));
 			maxDownloadRetries = Integer.parseInt(prop.getProperty("maxDownloadRetries"));
+			LOGGER.info("configuration initialization done");
 		} catch (ClassNotFoundException e) {
 			LOGGER.severe(e.getMessage());
 		} catch (IOException e) {
