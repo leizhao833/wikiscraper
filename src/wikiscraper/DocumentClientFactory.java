@@ -14,7 +14,6 @@ import com.microsoft.azure.documentdb.DocumentClient;
 public class DocumentClientFactory {
 
 	private static final Logger LOGGER = Logger.getGlobal();
-	private static final String HOST = "https://wikichange.documents.azure.com:443/";
 	private static String MASTER_KEY;
 
 	private static DocumentClient documentClient;
@@ -24,7 +23,7 @@ public class DocumentClientFactory {
 			if (MASTER_KEY == null) {
 				MASTER_KEY = loadMasterKey();
 			}
-			documentClient = new DocumentClient(HOST, MASTER_KEY, ConnectionPolicy.GetDefault(),
+			documentClient = new DocumentClient(Config.databaseHostName, MASTER_KEY, ConnectionPolicy.GetDefault(),
 					ConsistencyLevel.Session);
 		}
 
@@ -32,8 +31,10 @@ public class DocumentClientFactory {
 	}
 
 	private static String loadMasterKey() {
-		try (BufferedReader in = new BufferedReader(new FileReader(new File(new File("auth"), "master")))) {
-			return in.readLine();
+		try (BufferedReader in = new BufferedReader(new FileReader(new File(new File(System.getProperty("user.home"), ".auth"), "master")))) {
+			String key = in.readLine();
+			LOGGER.info("successfully loaded master key");
+			return key;
 		} catch (FileNotFoundException e) {
 			LOGGER.severe(e.getMessage());
 		} catch (IOException e) {

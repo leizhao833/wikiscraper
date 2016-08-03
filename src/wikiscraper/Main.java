@@ -1,5 +1,6 @@
 package wikiscraper;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -13,16 +14,28 @@ import org.jsoup.nodes.Document;
 public class Main {
 
 	private static final Logger LOGGER = Logger.getGlobal();
-	private static final int CHANGE_RECORD_EXPIRY_IN_DAYS = 5;
-	private static final int CRAWL_RECORD_EXPIRY_IN_DAYS = 30;
-	// private static final int CHANGE_RECORD_EXPIRY_IN_DAYS = 0;
-	// private static final int CRAWL_RECORD_EXPIRY_IN_DAYS = 0;
 	private static LocalDate lastExpiringDate = LocalDate.ofEpochDay(0);
 
 	public static void main(String[] args) {
+		initialize();
+		serviceLoop();
+	}
 
-		init();
-		
+	private static void initialize() {
+		FileHandler handler;
+		try {
+			handler = new FileHandler("log" + File.separator + "wikiscraper-log.%u.%g.txt", 1024 * 1024, 1000, true);
+			LOGGER.addHandler(handler);
+		} catch (SecurityException e) {
+			LOGGER.severe(e.getMessage());
+		} catch (IOException e) {
+			LOGGER.severe(e.getMessage());
+		}
+		Config.initialize();
+
+	}
+
+	private static void serviceLoop() {
 		Document doc = null;
 
 		try {
@@ -47,26 +60,13 @@ public class Main {
 				LOGGER.severe(t.getMessage());
 			}
 		}
-
-	}
-
-	private static void init() {
-		FileHandler handler;
-		try {
-			handler = new FileHandler("wikiscraper-log.%u.%g.txt", 1024 * 1024, 10, true);
-			LOGGER.addHandler(handler);
-		} catch (SecurityException e) {
-			LOGGER.severe(e.getMessage());
-		} catch (IOException e) {
-			LOGGER.severe(e.getMessage());
-		}
 	}
 
 	private static void expiringRecords() {
 		LocalDate today = LocalDate.now();
 		if (today.compareTo(lastExpiringDate) > 0) {
-			ZonedDateTime changeCutoff = ZonedDateTime.now().minusDays(CHANGE_RECORD_EXPIRY_IN_DAYS);
-			ZonedDateTime crawlCutoff = ZonedDateTime.now().minusDays(CRAWL_RECORD_EXPIRY_IN_DAYS);
+			ZonedDateTime changeCutoff = ZonedDateTime.now().minusDays(Config.changeRecordExpiryInDays);
+			ZonedDateTime crawlCutoff = ZonedDateTime.now().minusDays(Config.crawlRecordExpiryInDays);
 			ChangeRecordDao.INSTANCE.deleteOlderThan(changeCutoff);
 			CrawlRecordDao.INSTANCE.deleteOlderThan(crawlCutoff);
 			lastExpiringDate = today;

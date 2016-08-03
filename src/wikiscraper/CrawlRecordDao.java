@@ -16,8 +16,8 @@ public class CrawlRecordDao extends WikiChangeCollectionDao {
 
 	public static final CrawlRecordDao INSTANCE = new CrawlRecordDao();
 
-	private static final Logger LOGGER = Logger.getGlobal();
 	private static final Gson GSON = new Gson();
+	private static final Logger LOGGER = Logger.getGlobal();
 	private static final String QRY_EXACT = "SELECT * FROM c WHERE c.crawlTime = %d";
 	private static final String QRY_CRAWLTIME_LE = "SELECT * FROM c WHERE c.crawlTime < %d";
 
@@ -26,7 +26,7 @@ public class CrawlRecordDao extends WikiChangeCollectionDao {
 
 	@Override
 	protected String getCollectionId() {
-		return "CrawlRecordCollection";
+		return Config.crawlRecordCollectionId;
 	}
 
 	public CrawlRecordDoc create(CrawlRecordDoc record) {

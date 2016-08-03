@@ -14,10 +14,6 @@ public abstract class WikiChangeCollectionDao {
 	
 	private static final Logger LOGGER = Logger.getGlobal();
 
-
-	// The name of our database.
-	private static final String DATABASE_ID = "WikiChangeDB";
-
 	// The DocumentDB Client
 	protected static DocumentClient documentClient = DocumentClientFactory
 			.getDocumentClient();
@@ -44,7 +40,7 @@ public abstract class WikiChangeCollectionDao {
 			// Get the database if it exists
 			List<Database> databaseList = documentClient
 					.queryDatabases(
-							"SELECT * FROM root r WHERE r.id='" + DATABASE_ID
+							"SELECT * FROM root r WHERE r.id='" + Config.databaseId
 									+ "'", null).getQueryIterable().toList();
 
 			if (databaseList.size() > 0) {
@@ -55,7 +51,7 @@ public abstract class WikiChangeCollectionDao {
 				// Create the database if it doesn't exist.
 				try {
 					Database databaseDefinition = new Database();
-					databaseDefinition.setId(DATABASE_ID);
+					databaseDefinition.setId(Config.databaseId);
 
 					databaseCache = documentClient.createDatabase(
 							databaseDefinition, null).getResource();

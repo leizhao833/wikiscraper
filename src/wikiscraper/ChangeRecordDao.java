@@ -16,8 +16,8 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 
 	public static final ChangeRecordDao INSTANCE = new ChangeRecordDao();
 
-	private static final Logger LOGGER = Logger.getGlobal();
 	private static final Gson GSON = new Gson();
+	private static final Logger LOGGER = Logger.getGlobal();
 	private static final String QRY_EXACT = "SELECT * FROM c WHERE c.url = '%s' AND c.timestamp = %d";
 	private static final String QRY_TIMESTAMP_LE = "SELECT * FROM c WHERE c.timestamp < %d";
 
@@ -26,7 +26,7 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 
 	@Override
 	protected String getCollectionId() {
-		return "ChangeRecordCollection";
+		return Config.changeRecordCollectionId;
 	}
 
 	public ChangeRecordDoc create(ChangeRecordDoc record) {

@@ -13,15 +13,7 @@ import org.jsoup.nodes.Document;
 public class ChangePageCrawler {
 
 	private static final Logger LOGGER = Logger.getGlobal();
-	private static final String WIKI_CHANGE_URL = "https://en.wikipedia.org/w/index.php?namespace=0&days=1&limit=5000&hideminor=0&title=Special:RecentChanges&hideWikibase=0&hidebots=0";
-	private static final long CRAWL_INTERVAL_MAX = 30 * 60; // 30 min
-	private static final long CRAWL_INTERVAL_INC = 5 * 60; // 5 min
-	// private static final String WIKI_CHANGE_URL =
-	// "https://en.wikipedia.org/w/index.php?namespace=0&days=1&limit=100&hideminor=0&title=Special:RecentChanges&hideWikibase=0&hidebots=0";
-	// private static final long CRAWL_INTERVAL_MAX = 30; // 30 sec
-	// private static final long CRAWL_INTERVAL_INC = 5; // 5 s
-	private static final int MAX_RETRIES = 10;
-	private static long crawlIntervalInSec = CRAWL_INTERVAL_MAX;
+	private static long crawlIntervalInSec = Config.crawlIntervalMaxInSeconds;
 	private static LocalDateTime lastCrawlTime = LocalDateTime.now();
 	private static URL url;
 
@@ -46,12 +38,12 @@ public class ChangePageCrawler {
 			crawlIntervalInSec /= 2;
 			LOGGER.info(String.format("no overlap - cut crawl interval by half to %d", crawlIntervalInSec));
 		} else {
-			crawlIntervalInSec += CRAWL_INTERVAL_INC; // +5min
-			LOGGER.info(String.format("overlap detected - increasing crawl interval by %d to %d", CRAWL_INTERVAL_INC,
+			crawlIntervalInSec += Config.crawlIntervalIncInSeconds; // +5min
+			LOGGER.info(String.format("overlap detected - increasing crawl interval by %d to %d", Config.crawlIntervalIncInSeconds,
 					crawlIntervalInSec));
 		}
-		if (crawlIntervalInSec > CRAWL_INTERVAL_MAX) {
-			crawlIntervalInSec = CRAWL_INTERVAL_MAX;
+		if (crawlIntervalInSec > Config.crawlIntervalMaxInSeconds) {
+			crawlIntervalInSec = Config.crawlIntervalMaxInSeconds;
 			LOGGER.info(String.format("crawl interval too large - cap it at %d", crawlIntervalInSec));
 		}
 		LocalDateTime targetTime = lastCrawlTime.plusSeconds(crawlIntervalInSec);
@@ -62,9 +54,9 @@ public class ChangePageCrawler {
 	private static URL getUrl() {
 		if (url == null) {
 			try {
-				url = new URL(WIKI_CHANGE_URL);
+				url = new URL(Config.wikiChangeUrl);
 			} catch (MalformedURLException e) {
-				LOGGER.severe(String.format("invalid url %s", WIKI_CHANGE_URL));
+				LOGGER.severe(String.format("invalid url %s", Config.wikiChangeUrl));
 				LOGGER.severe(e.getMessage());
 				LOGGER.severe("sleep forever ...");
 				sleepUntil(LocalDateTime.now().plusYears(1));
@@ -75,9 +67,9 @@ public class ChangePageCrawler {
 
 	private static Document crawlPage() {
 		int attempts = 0;
-		while (attempts++ < MAX_RETRIES) {
+		while (attempts++ < Config.maxDownloadRetries) {
 			try {
-				LOGGER.info(String.format("downloading %s at attempt %d", WIKI_CHANGE_URL, attempts));
+				LOGGER.info(String.format("downloading %s at attempt %d", Config.wikiChangeUrl, attempts));
 				Document doc = Jsoup.parse(getUrl(), 20000);
 				LOGGER.info(String.format("downloading succeeded"));
 				return doc;

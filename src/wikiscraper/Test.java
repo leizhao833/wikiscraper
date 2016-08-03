@@ -12,13 +12,18 @@ import java.time.temporal.ChronoUnit;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		utilTicksToZonedDateTime();
+		testMisc();
+		// utilTicksToZonedDateTime();
 		// testUntil();
 		// testUrl();
 		// testDatabaseAddCrawlRecord();
 		// testDatabaseAddChangeRecord();
 		// testDatabaseCreate();
 		// testDatetime();
+	}
+
+	private static void testMisc() {
+		System.out.println(System.getProperty("user.home"));
 	}
 
 	private static void utilTicksToZonedDateTime() {
