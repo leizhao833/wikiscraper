@@ -5,12 +5,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
 
 public class DocumentClientFactory {
+
+	private static final Logger LOGGER = Logger.getGlobal();
 	private static final String HOST = "https://wikichange.documents.azure.com:443/";
 	private static String MASTER_KEY;
 
@@ -32,9 +36,9 @@ public class DocumentClientFactory {
 		try (BufferedReader in = new BufferedReader(new FileReader(new File(new File("auth"), "master")))) {
 			return in.readLine();
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			LOGGER.severe(e.getMessage());
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.severe(e.getMessage());
 		}
 		return null;
 	}

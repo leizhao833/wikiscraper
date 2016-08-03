@@ -4,6 +4,7 @@
 package wikiscraper;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.microsoft.azure.documentdb.Document;
@@ -13,9 +14,9 @@ public class CrawlRecordDao extends WikiChangeCollectionDao {
 
 	public static final CrawlRecordDao INSTANCE = new CrawlRecordDao();
 
-	private static Gson gson = new Gson();
-
-	private final String QRY_EXACT_DOC = "SELECT * FROM c WHERE c.crawlTime = %d";
+	private static final Logger LOGGER = Logger.getGlobal();
+	private static final Gson GSON = new Gson();
+	private static final String QRY_EXACT_DOC = "SELECT * FROM c WHERE c.crawlTime = %d";
 
 	private CrawlRecordDao() {
 	}
@@ -26,17 +27,17 @@ public class CrawlRecordDao extends WikiChangeCollectionDao {
 	}
 
 	public CrawlRecordDoc create(CrawlRecordDoc record) {
-		Document doc = new Document(gson.toJson(record));
+		Document doc = new Document(GSON.toJson(record));
 
 		try {
 			doc = documentClient.createDocument(getCollection().getSelfLink(),
 					doc, null, false).getResource();
 		} catch (DocumentClientException e) {
-			e.printStackTrace();
+			LOGGER.severe(e.getMessage());
 			return null;
 		}
 
-		return gson.fromJson(doc.toString(), CrawlRecordDoc.class);
+		return GSON.fromJson(doc.toString(), CrawlRecordDoc.class);
 	}
 
 	public boolean add(CrawlRecordDoc record) {

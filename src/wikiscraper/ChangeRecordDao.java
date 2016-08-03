@@ -4,6 +4,7 @@
 package wikiscraper;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.microsoft.azure.documentdb.Document;
@@ -13,8 +14,8 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 
 	public static final ChangeRecordDao INSTANCE = new ChangeRecordDao();
 
+	private static final Logger LOGGER = Logger.getGlobal();
 	private static Gson gson = new Gson();
-
 	private final String QRY_EXACT_DOC = "SELECT * FROM c WHERE c.url = '%s' AND c.timestamp = %d";
 
 	private ChangeRecordDao() {
@@ -29,10 +30,9 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 		Document doc = new Document(gson.toJson(record));
 
 		try {
-			doc = documentClient.createDocument(getCollection().getSelfLink(),
-					doc, null, false).getResource();
+			doc = documentClient.createDocument(getCollection().getSelfLink(), doc, null, false).getResource();
 		} catch (DocumentClientException e) {
-			e.printStackTrace();
+			LOGGER.severe(e.getMessage());
 			return null;
 		}
 
@@ -48,10 +48,8 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 	}
 
 	public boolean exist(ChangeRecordDoc record) {
-		String queryStr = String.format(QRY_EXACT_DOC, record.url,
-				record.timestamp);
-		List<Document> docList = documentClient
-				.queryDocuments(getCollection().getSelfLink(), queryStr, null)
+		String queryStr = String.format(QRY_EXACT_DOC, record.url, record.timestamp);
+		List<Document> docList = documentClient.queryDocuments(getCollection().getSelfLink(), queryStr, null)
 				.getQueryIterable().toList();
 		return docList.size() > 0;
 	}

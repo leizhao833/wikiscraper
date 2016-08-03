@@ -5,10 +5,8 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jsoup.nodes.Document;
@@ -22,13 +20,12 @@ public class ChangePagerParser {
 	private final static String XPATH_ROOT_LIST = "div.mw-changeslist > ul.special > li";
 	private final static String XPATH_ENTRY_TITLE = "span.mw-title > a, abbr.wikibase-edit + a";
 	private final static String XPATH_ENTRY_DATE = "span.mw-changeslist-date";
-	private final static DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter
-			.ofPattern("d MMMM yyyy HH:mm");
+	private final static DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
 
-	public static List<ChangeRecordDoc> parse(Document doc) {
+	public static Set<ChangeRecordDoc> parse(Document doc) {
 		ChangeRecordDoc changeRecord = null;
 		String dateStr = doc.select(XPATH_ROOT_DATE).first().text();
-		List<ChangeRecordDoc> changeRecordList = new ArrayList<ChangeRecordDoc>();
+		Set<ChangeRecordDoc> recordSet = new HashSet<ChangeRecordDoc>();
 		for (Element elem : doc.select(XPATH_ROOT_LIST)) {
 			Set<String> classNames = elem.classNames();
 			assert (classNames != null);
@@ -36,29 +33,25 @@ public class ChangePagerParser {
 			switch (changeType) {
 			case CT_MODIFICATION:
 				changeRecord = parseModification(elem, dateStr);
-				changeRecordList.add(changeRecord);
+				recordSet.add(changeRecord);
 				break;
 			default:
-				LOGGER.log(Level.INFO, String.format("Ignoring: %s %s",
-						changeType.toString(), elem.text()));
+				LOGGER.info(String.format("Ignoring: %s %s", changeType.toString(), elem.text()));
 			}
 		}
-		return changeRecordList;
+		return recordSet;
 	}
 
-	private static ChangeRecordDoc parseModification(Element elem,
-			String dateStr) {
+	private static ChangeRecordDoc parseModification(Element elem, String dateStr) {
 		Elements elems = elem.select(XPATH_ENTRY_TITLE);
 		String urlStr = elems.first().attr("href");
 		urlStr = makeAbsoluteUrl(urlStr);
 		String timeStr = elem.select(XPATH_ENTRY_DATE).text();
 		String dateTimeStr = dateStr + ' ' + timeStr;
-		LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr,
-				DATETIME_FORMATTER);
+		LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, DATETIME_FORMATTER);
 		long timestamp = dateTime.toEpochSecond(ZoneOffset.UTC);
 		return new ChangeRecordDoc(urlStr, timestamp);
 	}
-	
 
 	private static String makeAbsoluteUrl(String urlStr) {
 		try {

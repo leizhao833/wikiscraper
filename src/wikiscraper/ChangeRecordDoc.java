@@ -5,10 +5,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 public class ChangeRecordDoc {
-	@Override
-	public String toString() {
-		return String.format("%s\t%s", url, timestampAsZonedDateTime());
-	}
 
 	public String url;
 	public long timestamp;
@@ -27,12 +23,32 @@ public class ChangeRecordDoc {
 	}
 
 	public ZonedDateTime timestampAsZonedDateTime() {
-		return ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp),
-				ZoneOffset.UTC);
+		return ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneOffset.UTC);
 	}
 
 	public void copyTo(ChangeRecordDoc other) {
 		other.url = url;
 		other.timestamp = timestamp;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s\t%s", url, timestampAsZonedDateTime());
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (obj instanceof ChangeRecordDoc) {
+			ChangeRecordDoc other = (ChangeRecordDoc) obj;
+			return this.url.equals(other.url) && this.timestamp == other.timestamp;
+		} else {
+			return false;
+		}
 	}
 }

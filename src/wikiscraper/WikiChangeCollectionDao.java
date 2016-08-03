@@ -1,6 +1,8 @@
 package wikiscraper;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.microsoft.azure.documentdb.Database;
 import com.microsoft.azure.documentdb.DocumentClient;
@@ -9,6 +11,9 @@ import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.documentdb.RequestOptions;
 
 public abstract class WikiChangeCollectionDao {
+	
+	private static final Logger LOGGER = Logger.getGlobal();
+
 
 	// The name of our database.
 	private static final String DATABASE_ID = "WikiChangeDB";
@@ -55,10 +60,7 @@ public abstract class WikiChangeCollectionDao {
 					databaseCache = documentClient.createDatabase(
 							databaseDefinition, null).getResource();
 				} catch (DocumentClientException e) {
-					// TODO: Something has gone terribly wrong - the app wasn't
-					// able to query or create the collection.
-					// Verify your connection, endpoint, and key.
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, e.getMessage());
 				}
 			}
 		}
@@ -93,10 +95,7 @@ public abstract class WikiChangeCollectionDao {
 							getDatabase().getSelfLink(),
 							collectionDefinition, requestOptions).getResource();
 				} catch (DocumentClientException e) {
-					// TODO: Something has gone terribly wrong - the app wasn't
-					// able to query or create the collection.
-					// Verify your connection, endpoint, and key.
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, e.getMessage());
 				}
 			}
 		}

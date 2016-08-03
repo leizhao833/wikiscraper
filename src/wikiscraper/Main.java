@@ -2,7 +2,7 @@ package wikiscraper;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,51 +20,45 @@ public class Main {
 
 		while (true) {
 			try {
-				ZonedDateTime crawlTime = ChangePageCrawler.getLastCrawlTime()
-						.atZone(ZoneId.systemDefault());
-				List<ChangeRecordDoc> changeRecordList = ChangePagerParser
-						.parse(doc);
+				ZonedDateTime crawlTime = ChangePageCrawler.getLastCrawlTime().atZone(ZoneId.systemDefault());
+				Set<ChangeRecordDoc> changeRecordSet = ChangePagerParser.parse(doc);
 				ChangeRecordDoc changeMin = new ChangeRecordDoc();
 				ChangeRecordDoc changeMax = new ChangeRecordDoc();
-				findMaxMinRecords(changeRecordList, changeMax, changeMin);
+				findMaxMinRecords(changeRecordSet, changeMax, changeMin);
 				boolean overlap = detectRecordOverlap(changeMin);
-				storeChangeRecords(changeRecordList);
+				storeChangeRecords(changeRecordSet);
 				storeCrawlRecord(crawlTime, changeMax, changeMin);
 				doc = ChangePageCrawler.getDocument(overlap, false);
 			} catch (Throwable t) {
-				LOGGER.log(Level.SEVERE, t.getMessage());
+				LOGGER.severe(t.getMessage());
 			}
 		}
 
 	}
 
-	private static void storeCrawlRecord(ZonedDateTime crawlTime,
-			ChangeRecordDoc max, ChangeRecordDoc min) {
-		CrawlRecordDoc rec = new CrawlRecordDoc(crawlTime.toEpochSecond(),
-				min.timestamp, max.timestamp);
+	private static void storeCrawlRecord(ZonedDateTime crawlTime, ChangeRecordDoc max, ChangeRecordDoc min) {
+		CrawlRecordDoc rec = new CrawlRecordDoc(crawlTime.toEpochSecond(), min.timestamp, max.timestamp);
 		if (CrawlRecordDao.INSTANCE.add(rec)) {
-			LOGGER.log(Level.INFO,
-					String.format("ADD crawl record %s", rec.toString()));
+			LOGGER.info(String.format("Added crawl record %s into database", rec.toString()));
 		} else {
-			LOGGER.log(Level.WARNING, String.format(
-					"Duplicated crawl record existing: %s. Ignore ...",
-					rec.toString()));
+			LOGGER.info(String.format("Duplicated crawl record existing: %s. Ignore ...", rec.toString()));
 		}
 
 	}
 
-	private static void storeChangeRecords(List<ChangeRecordDoc> records) {
-		LOGGER.log(Level.INFO,
-				String.format("Adding %d change records into database", records.size()));
+	private static void storeChangeRecords(Set<ChangeRecordDoc> records) {
+		int newCount = 0;
 		for (ChangeRecordDoc rec : records) {
 			boolean added = ChangeRecordDao.INSTANCE.add(rec);
-			LOGGER.log(Level.FINE,
-					String.format("ADD change record %s %b", rec.toString(), added));
+			if (added) {
+				newCount++;
+			}
+			LOGGER.fine(String.format("Added change record %s %b", rec.toString(), added));
 		}
+		LOGGER.info(String.format("Added %d total (%d new) change records into database", records.size(), newCount));
 	}
 
-	private static void findMaxMinRecords(List<ChangeRecordDoc> records,
-			ChangeRecordDoc max, ChangeRecordDoc min) {
+	private static void findMaxMinRecords(Set<ChangeRecordDoc> records, ChangeRecordDoc max, ChangeRecordDoc min) {
 		ChangeRecordDoc maxPtr = new ChangeRecordDoc(null, 0);
 		ChangeRecordDoc minPtr = new ChangeRecordDoc(null, Long.MAX_VALUE);
 		for (ChangeRecordDoc changeRecord : records) {
