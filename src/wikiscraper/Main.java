@@ -1,9 +1,11 @@
 package wikiscraper;
 
+import java.io.IOException;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Set;
-import java.util.logging.Level;
+import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 
 import org.jsoup.nodes.Document;
@@ -11,12 +13,23 @@ import org.jsoup.nodes.Document;
 public class Main {
 
 	private static final Logger LOGGER = Logger.getGlobal();
+	private static final int CHANGE_RECORD_EXPIRY_IN_DAYS = 5;
+	private static final int CRAWL_RECORD_EXPIRY_IN_DAYS = 30;
+	// private static final int CHANGE_RECORD_EXPIRY_IN_DAYS = 0;
+	// private static final int CRAWL_RECORD_EXPIRY_IN_DAYS = 0;
+	private static LocalDate lastExpiringDate = LocalDate.ofEpochDay(0);
 
 	public static void main(String[] args) {
 
-		LOGGER.setLevel(Level.ALL);
+		init();
+		
+		Document doc = null;
 
-		Document doc = ChangePageCrawler.getDocument(true, true);
+		try {
+			doc = ChangePageCrawler.getDocument(true, true);
+		} catch (Throwable t) {
+			LOGGER.severe(t.getMessage());
+		}
 
 		while (true) {
 			try {
@@ -28,12 +41,36 @@ public class Main {
 				boolean overlap = detectRecordOverlap(changeMin);
 				storeChangeRecords(changeRecordSet);
 				storeCrawlRecord(crawlTime, changeMax, changeMin);
+				expiringRecords();
 				doc = ChangePageCrawler.getDocument(overlap, false);
 			} catch (Throwable t) {
 				LOGGER.severe(t.getMessage());
 			}
 		}
 
+	}
+
+	private static void init() {
+		FileHandler handler;
+		try {
+			handler = new FileHandler("wikiscraper-log.%u.%g.txt", 1024 * 1024, 10, true);
+			LOGGER.addHandler(handler);
+		} catch (SecurityException e) {
+			LOGGER.severe(e.getMessage());
+		} catch (IOException e) {
+			LOGGER.severe(e.getMessage());
+		}
+	}
+
+	private static void expiringRecords() {
+		LocalDate today = LocalDate.now();
+		if (today.compareTo(lastExpiringDate) > 0) {
+			ZonedDateTime changeCutoff = ZonedDateTime.now().minusDays(CHANGE_RECORD_EXPIRY_IN_DAYS);
+			ZonedDateTime crawlCutoff = ZonedDateTime.now().minusDays(CRAWL_RECORD_EXPIRY_IN_DAYS);
+			ChangeRecordDao.INSTANCE.deleteOlderThan(changeCutoff);
+			CrawlRecordDao.INSTANCE.deleteOlderThan(crawlCutoff);
+			lastExpiringDate = today;
+		}
 	}
 
 	private static void storeCrawlRecord(ZonedDateTime crawlTime, ChangeRecordDoc max, ChangeRecordDoc min) {

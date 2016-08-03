@@ -3,20 +3,23 @@
  */
 package wikiscraper;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClientException;
+import com.microsoft.azure.documentdb.QueryIterable;
 
 public class ChangeRecordDao extends WikiChangeCollectionDao {
 
 	public static final ChangeRecordDao INSTANCE = new ChangeRecordDao();
 
 	private static final Logger LOGGER = Logger.getGlobal();
-	private static Gson gson = new Gson();
-	private final String QRY_EXACT_DOC = "SELECT * FROM c WHERE c.url = '%s' AND c.timestamp = %d";
+	private static final Gson GSON = new Gson();
+	private static final String QRY_EXACT = "SELECT * FROM c WHERE c.url = '%s' AND c.timestamp = %d";
+	private static final String QRY_TIMESTAMP_LE = "SELECT * FROM c WHERE c.timestamp < %d";
 
 	private ChangeRecordDao() {
 	}
@@ -27,7 +30,7 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 	}
 
 	public ChangeRecordDoc create(ChangeRecordDoc record) {
-		Document doc = new Document(gson.toJson(record));
+		Document doc = new Document(GSON.toJson(record));
 
 		try {
 			doc = documentClient.createDocument(getCollection().getSelfLink(), doc, null, false).getResource();
@@ -36,7 +39,7 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 			return null;
 		}
 
-		return gson.fromJson(doc.toString(), ChangeRecordDoc.class);
+		return GSON.fromJson(doc.toString(), ChangeRecordDoc.class);
 	}
 
 	public boolean add(ChangeRecordDoc record) {
@@ -48,10 +51,27 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 	}
 
 	public boolean exist(ChangeRecordDoc record) {
-		String queryStr = String.format(QRY_EXACT_DOC, record.url, record.timestamp);
+		String queryStr = String.format(QRY_EXACT, record.url, record.timestamp);
 		List<Document> docList = documentClient.queryDocuments(getCollection().getSelfLink(), queryStr, null)
 				.getQueryIterable().toList();
 		return docList.size() > 0;
 	}
 
+	public int deleteOlderThan(ZonedDateTime cutoff) {
+		long timestamp = cutoff.toEpochSecond();
+		String queryStr = String.format(QRY_TIMESTAMP_LE, timestamp);
+		QueryIterable<Document> docs = documentClient.queryDocuments(getCollection().getSelfLink(), queryStr, null)
+				.getQueryIterable();
+		int deletedCount = 0;
+		try {
+			for (Document doc : docs) {
+				documentClient.deleteDocument(doc.getSelfLink(), null);
+				deletedCount++;
+			}
+		} catch (DocumentClientException e) {
+			LOGGER.severe(e.getMessage());
+		}
+		LOGGER.info(String.format("deleted %d change records older than %s", deletedCount, cutoff.toString()));
+		return deletedCount;
+	}
 }

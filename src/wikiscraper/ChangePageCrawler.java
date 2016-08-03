@@ -13,13 +13,12 @@ import org.jsoup.nodes.Document;
 public class ChangePageCrawler {
 
 	private static final Logger LOGGER = Logger.getGlobal();
-	 private static final String WIKI_CHANGE_URL =
-	 "https://en.wikipedia.org/w/index.php?namespace=0&days=1&limit=5000&hideminor=0&title=Special:RecentChanges&hideWikibase=0&hidebots=0";
-	 private static final long CRAWL_INTERVAL_MAX = 30 * 60; // 30 min
-	 private static final long CRAWL_INTERVAL_INC = 5 * 60; // 5 min
+	private static final String WIKI_CHANGE_URL = "https://en.wikipedia.org/w/index.php?namespace=0&days=1&limit=5000&hideminor=0&title=Special:RecentChanges&hideWikibase=0&hidebots=0";
+	private static final long CRAWL_INTERVAL_MAX = 30 * 60; // 30 min
+	private static final long CRAWL_INTERVAL_INC = 5 * 60; // 5 min
 	// private static final String WIKI_CHANGE_URL =
 	// "https://en.wikipedia.org/w/index.php?namespace=0&days=1&limit=100&hideminor=0&title=Special:RecentChanges&hideWikibase=0&hidebots=0";
-	// private static final long CRAWL_INTERVAL_MAX = 3 * 60; // 30 sec
+	// private static final long CRAWL_INTERVAL_MAX = 30; // 30 sec
 	// private static final long CRAWL_INTERVAL_INC = 5; // 5 s
 	private static final int MAX_RETRIES = 10;
 	private static long crawlIntervalInSec = CRAWL_INTERVAL_MAX;
@@ -56,8 +55,7 @@ public class ChangePageCrawler {
 			LOGGER.info(String.format("crawl interval too large - cap it at %d", crawlIntervalInSec));
 		}
 		LocalDateTime targetTime = lastCrawlTime.plusSeconds(crawlIntervalInSec);
-		LOGGER.info(String.format("crawl interval: %d - next crawl at %s", crawlIntervalInSec,
-				targetTime.toString()));
+		LOGGER.info(String.format("crawl interval: %d - next crawl at %s", crawlIntervalInSec, targetTime.toString()));
 		sleepUntil(targetTime);
 	}
 
@@ -92,8 +90,8 @@ public class ChangePageCrawler {
 				sleepUntil(next);
 			}
 		}
-		LOGGER.severe(
-				String.format("maximum %d attempts reached. Unable to download the page. Sleep forever ...", attempts));
+		LOGGER.severe(String.format("maximum %d attempts reached. Unable to download the page. Sleep forever ...",
+				attempts));
 		sleepUntil(LocalDateTime.now().plusYears(1));
 		return null;
 	}
