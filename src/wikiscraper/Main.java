@@ -136,7 +136,7 @@ public class Main {
 	}
 
 	private static int storeChangeRecords(Set<ChangeRecordDoc> records) {
-		LOGGER.info(String.format("dding %d change records into database", records.size()));
+		LOGGER.info(String.format("adding %d change records into database", records.size()));
 		int newCount = 0;
 		for (ChangeRecordDoc rec : records) {
 			boolean added = ChangeRecordDao.INSTANCE.add(rec);
@@ -144,7 +144,7 @@ public class Main {
 			if (added) {
 				newCount++;
 			}
-			LOGGER.fine(String.format("Added change record %s %b", rec.toString(), added));
+			LOGGER.fine(String.format("added change record %s %b", rec.toString(), added));
 		}
 		LOGGER.info(String.format("total %d (%d new) change records added to database", records.size(), newCount));
 		return newCount;
