@@ -5,13 +5,13 @@ package wikiscraper;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.google.gson.Gson;
 import com.microsoft.azure.documentdb.Document;
-import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.QueryIterable;
 
 public class ChangeRecordDao extends WikiChangeCollectionDao {
@@ -22,6 +22,7 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 	private static final Logger LOGGER = Logger.getGlobal();
 	private static final String QRY_EXACT = "SELECT * FROM c WHERE c.url = '%s' AND c.timestamp = %d";
 	private static final String QRY_TIMESTAMP_LE = "SELECT * FROM c WHERE c.timestamp < %d";
+	private static final Utils<Void> UTILS = new Utils<Void>();
 
 	private ChangeRecordDao() {
 	}
@@ -31,17 +32,19 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 		return Config.changeRecordCollectionId;
 	}
 
-	public ChangeRecordDoc create(ChangeRecordDoc record) {
-		Document doc = new Document(GSON.toJson(record));
+	public void create(ChangeRecordDoc record) {
+		final Document doc = new Document(GSON.toJson(record));
 
-		try {
-			doc = documentClient.createDocument(getCollection().getSelfLink(), doc, null, false).getResource();
-		} catch (DocumentClientException e) {
-			LOGGER.severe(ExceptionUtils.getStackTrace(e));
+		Callable<Void> c = () -> {
+			documentClient.createDocument(getCollection().getSelfLink(), doc, null, false);
 			return null;
+		};
+		
+		try {
+			UTILS.retry(Config.maxDatabaseQueryRetries, Config.intervalBetweenQueriesInMillis, false, c);
+		} catch (Throwable e) {
+			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
-
-		return GSON.fromJson(doc.toString(), ChangeRecordDoc.class);
 	}
 
 	public boolean add(ChangeRecordDoc record) {
@@ -67,11 +70,15 @@ public class ChangeRecordDao extends WikiChangeCollectionDao {
 		int deletedCount = 0;
 		try {
 			for (Document doc : docs) {
-				documentClient.deleteDocument(doc.getSelfLink(), null);
+				Callable<Void> c = () -> {
+					documentClient.deleteDocument(doc.getSelfLink(), null);
+					return null;
+				};
+				UTILS.retry(Config.maxDatabaseQueryRetries, Config.intervalBetweenQueriesInMillis, false, c);
 				deletedCount++;
 			}
-		} catch (DocumentClientException e) {
-			LOGGER.severe(ExceptionUtils.getStackTrace(e));
+		} catch (Throwable t) {
+			LOGGER.severe(ExceptionUtils.getStackTrace(t));
 		}
 		LOGGER.info(String.format("deleted %d change records older than %s", deletedCount, cutoff.toString()));
 		return deletedCount;

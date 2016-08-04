@@ -49,10 +49,9 @@ public abstract class WikiChangeCollectionDao {
 				databaseCache = databaseList.get(0);
 			} else {
 				// Create the database if it doesn't exist.
+				Database databaseDefinition = new Database();
+				databaseDefinition.setId(Config.databaseId);
 				try {
-					Database databaseDefinition = new Database();
-					databaseDefinition.setId(Config.databaseId);
-
 					databaseCache = documentClient.createDatabase(
 							databaseDefinition, null).getResource();
 				} catch (DocumentClientException e) {

@@ -30,7 +30,7 @@ public class Main {
 			if (!log.exists()) {
 				log.mkdir();
 			}
-			handler = new FileHandler("log" + File.separator + "wikiscraper-log.%u.%g.xml", 1024 * 1024 * 50, 1000, true);
+			handler = new FileHandler("log" + File.separator + "wikiscraper-log.%u.%g.log", 1024 * 1024 * 50, 1000, true);
 		    SimpleFormatter formatter = new SimpleFormatter();
 		    handler.setFormatter(formatter);
 			LOGGER.addHandler(handler);
