@@ -52,7 +52,7 @@ public class Crawler {
 	private static String crawlPage() {
 		Callable<String> func = () -> {
 			Connection conn = Jsoup.connect(Config.wikiChangeUrl);
-			conn.timeout(0);
+			conn.timeout(60 * 1000); // 1 min
 			conn.maxBodySize(0);
 			return conn.execute().body();
 		};
