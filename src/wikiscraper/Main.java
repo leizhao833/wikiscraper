@@ -53,30 +53,42 @@ public class Main {
 	}
 
 	private static void serviceLoop() {
-
 		Document doc = null;
 		boolean overlap = true;
+		File htmlFile = null;
+		LocalDateTime crawlTime = null;
+
 		try {
 			String html = Crawler.getDocument(overlap, true);
-			storeHtmlFile(html);
+			crawlTime = Crawler.getLastCrawlTime();
+			htmlFile = storeHtmlFile(html, crawlTime);
 			doc = Jsoup.parse(html, "https://en.wikipedia.org");
 		} catch (Throwable t) {
 			LOGGER.severe(ExceptionUtils.getStackTrace(t));
 		}
 
 		while (true) {
+			Set<ChangeRecordDoc> changeRecordSet = null;
 			try {
-				ZonedDateTime crawlTime = Crawler.getLastCrawlTime().atZone(ZoneId.systemDefault());
-				Set<ChangeRecordDoc> changeRecordSet = Parser.parse(doc);
+				changeRecordSet = Parser.parse(doc);
+				// delete the html file if parse passed
+				htmlFile.delete();
+				LOGGER.info(String.format("%s deleted", htmlFile.toString()));
+			} catch (Throwable t) {
+				LOGGER.severe(ExceptionUtils.getStackTrace(t));
+			}
+			try {
 				ChangeRecordDoc changeMin = new ChangeRecordDoc();
 				ChangeRecordDoc changeMax = new ChangeRecordDoc();
 				findMaxMinRecords(changeRecordSet, changeMax, changeMin);
-				overlap = detectRecordOverlap(changeMin);
-				storeChangeRecords(changeRecordSet);
-				storeCrawlRecord(crawlTime, changeMax, changeMin);
+				int added = storeChangeRecords(changeRecordSet);
+				overlap = added < changeRecordSet.size();
+				storeCrawlRecord(crawlTime.atZone(ZoneId.systemDefault()), changeMax, changeMin);
 				expiringRecords();
+
 				String html = Crawler.getDocument(overlap, false);
-				storeHtmlFile(html);
+				crawlTime = Crawler.getLastCrawlTime();
+				htmlFile = storeHtmlFile(html, crawlTime);
 				doc = Jsoup.parse(html, "https://en.wikipedia.org");
 			} catch (Throwable t) {
 				LOGGER.severe(ExceptionUtils.getStackTrace(t));
@@ -86,12 +98,12 @@ public class Main {
 
 	private static final DateTimeFormatter HTML_FILE_FORMATTER = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
 
-	private static void storeHtmlFile(String html) {
+	private static File storeHtmlFile(String html, LocalDateTime crawlTime) {
 		File htmlDir = new File("html");
 		if (!htmlDir.exists()) {
 			htmlDir.mkdir();
 		}
-		String htmlFile = "changePage_" + HTML_FILE_FORMATTER.format(LocalDateTime.now()) + ".html";
+		String htmlFile = "changePage_" + HTML_FILE_FORMATTER.format(crawlTime) + ".html";
 		File file = new File(htmlDir, htmlFile);
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
 			out.write(html);
@@ -99,6 +111,7 @@ public class Main {
 		} catch (IOException e) {
 			LOGGER.severe(e.getMessage());
 		}
+		return file;
 	}
 
 	private static void expiringRecords() {
@@ -115,14 +128,15 @@ public class Main {
 	private static void storeCrawlRecord(ZonedDateTime crawlTime, ChangeRecordDoc max, ChangeRecordDoc min) {
 		CrawlRecordDoc rec = new CrawlRecordDoc(crawlTime.toEpochSecond(), min.timestamp, max.timestamp);
 		if (CrawlRecordDao.INSTANCE.add(rec)) {
-			LOGGER.info(String.format("Added crawl record %s into database", rec.toString()));
+			LOGGER.info(String.format("added crawl record %s into database", rec.toString()));
 		} else {
-			LOGGER.info(String.format("Duplicated crawl record existing: %s. Ignore ...", rec.toString()));
+			LOGGER.info(String.format("duplicated crawl record existing: %s. Ignore ...", rec.toString()));
 		}
 
 	}
 
-	private static void storeChangeRecords(Set<ChangeRecordDoc> records) {
+	private static int storeChangeRecords(Set<ChangeRecordDoc> records) {
+		LOGGER.info(String.format("dding %d change records into database", records.size()));
 		int newCount = 0;
 		for (ChangeRecordDoc rec : records) {
 			boolean added = ChangeRecordDao.INSTANCE.add(rec);
@@ -132,7 +146,8 @@ public class Main {
 			}
 			LOGGER.fine(String.format("Added change record %s %b", rec.toString(), added));
 		}
-		LOGGER.info(String.format("Added %d total (%d new) change records into database", records.size(), newCount));
+		LOGGER.info(String.format("total %d (%d new) change records added to database", records.size(), newCount));
+		return newCount;
 	}
 
 	private static void findMaxMinRecords(Set<ChangeRecordDoc> records, ChangeRecordDoc max, ChangeRecordDoc min) {
@@ -148,10 +163,6 @@ public class Main {
 		}
 		maxPtr.copyTo(max);
 		minPtr.copyTo(min);
-	}
-
-	private static boolean detectRecordOverlap(ChangeRecordDoc min) {
-		return ChangeRecordDao.INSTANCE.exist(min);
 	}
 
 }
