@@ -1,7 +1,5 @@
 package wikiscraper;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -9,7 +7,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -51,27 +48,12 @@ public class Parser {
 
 	private static ChangeRecordDoc parseModification(Element elem, String dateStr) {
 		Elements elems = elem.select(XPATH_ENTRY_TITLE);
-		String urlStr = elems.first().attr("href");
-		urlStr = makeAbsoluteUrl(urlStr);
+		String urlStr = elems.first().attr("abs:href");
 		String timeStr = elem.select(XPATH_ENTRY_DATE).text();
 		String dateTimeStr = dateStr + ' ' + timeStr;
 		LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, DATETIME_FORMATTER);
 		long timestamp = dateTime.toEpochSecond(ZoneOffset.UTC);
 		return new ChangeRecordDoc(urlStr, timestamp);
-	}
-
-	private static String makeAbsoluteUrl(String urlStr) {
-		try {
-			URI url = new URI(urlStr);
-			if (!url.isAbsolute()) {
-				urlStr = new URI("https", "en.wikipedia.org", urlStr, null).toString();
-			}
-			return urlStr;
-		} catch (URISyntaxException e) {
-			LOGGER.severe(ExceptionUtils.getStackTrace(e));
-			return null;
-		}
-
 	}
 
 	private static EnumChangeType detectChangeType(Set<String> classNames) {

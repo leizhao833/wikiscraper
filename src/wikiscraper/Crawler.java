@@ -1,29 +1,26 @@
 package wikiscraper;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 public class Crawler {
 
 	private static final Logger LOGGER = Logger.getGlobal();
-	private static final Utils<Document> UTILS = new Utils<Document>();
+	private static final Utils<String> UTILS = new Utils<String>();
 	private static long crawlIntervalInSec = Config.crawlIntervalMaxInSeconds;
 	private static LocalDateTime lastCrawlTime = LocalDateTime.now();
-	private static URL url;
 
-	public static Document getDocument(boolean overlap, boolean immediately) {
+	public static String getDocument(boolean overlap, boolean immediately) {
 		// return Jsoup.parse(LOCAL_TEST_FILE, Charset.defaultCharset().name());
 		waitUntilNextCrawl(overlap, immediately);
-		Document doc = crawlPage();
+		String html = crawlPage();
 		lastCrawlTime = LocalDateTime.now();
-		return doc;
+		return html;
 	}
 
 	public static LocalDateTime getLastCrawlTime() {
@@ -52,36 +49,22 @@ public class Crawler {
 		Utils.sleepUntil(targetTime);
 	}
 
-	private static URL getUrl() {
-		if (url == null) {
-			try {
-				url = new URL(Config.wikiChangeUrl);
-			} catch (MalformedURLException e) {
-				StringBuilder sb = new StringBuilder();
-				sb.append(String.format("invalid url %s%n", Config.wikiChangeUrl));
-				sb.append(String.format("%s%n", ExceptionUtils.getStackTrace(e)));
-				sb.append("sleep forever ...");
-				LOGGER.severe(sb.toString());
-				Utils.sleepForever();
-			}
-		}
-		return url;
-	}
 
-	private static Document crawlPage() {
-		LOGGER.info(String.format("begin downloading %s", Config.wikiChangeUrl));
-		Callable<Document> func = () -> {
-			Document doc = Jsoup.parse(getUrl(), 20000);
-			return doc;
+	private static String crawlPage() {
+		Callable<String> func = () -> {
+			Connection conn = Jsoup.connect(Config.wikiChangeUrl);
+			conn.timeout(0);
+			conn.maxBodySize(0);
+			return conn.execute().body();
 		};
 		try {
-			Document doc = UTILS.retry(Config.maxRetries, Config.retryIntervalInMillis, true, func);
+			LOGGER.info(String.format("begin downloading %s", Config.wikiChangeUrl));
+			String html = UTILS.retry(Config.maxRetries, Config.retryIntervalInMillis, true, func);
 			LOGGER.info(String.format("download succeeded"));
-			return doc;
+			return html;
 		} catch (Throwable e) {
 			StringBuilder sb = new StringBuilder();
-			sb.append(String.format("maximum %d attempts reached, unable to download the page%n",
-					Config.maxRetries));
+			sb.append(String.format("maximum %d attempts reached, unable to download the page%n", Config.maxRetries));
 			sb.append(String.format("%s%n", ExceptionUtils.getStackTrace(e)));
 			sb.append("sleep forever ...");
 			LOGGER.severe(sb.toString());

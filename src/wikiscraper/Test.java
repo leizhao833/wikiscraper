@@ -14,7 +14,7 @@ import java.util.Set;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		testDocEqual();
+		// testDocEqual();
 		// testMisc();
 		// utilTicksToZonedDateTime();
 		// testUntil();
@@ -22,7 +22,7 @@ public class Test {
 		// testDatabaseAddCrawlRecord();
 		// testDatabaseAddChangeRecord();
 		// testDatabaseCreate();
-		// testDatetime();
+		testDatetime();
 	}
 
 	private static void testDocEqual() {

@@ -1,10 +1,14 @@
 package wikiscraper;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -12,6 +16,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 public class Main {
@@ -48,10 +53,13 @@ public class Main {
 	}
 
 	private static void serviceLoop() {
-		Document doc = null;
 
+		Document doc = null;
+		boolean overlap = true;
 		try {
-			doc = Crawler.getDocument(true, true);
+			String html = Crawler.getDocument(overlap, true);
+			storeHtmlFile(html);
+			doc = Jsoup.parse(html, "https://en.wikipedia.org");
 		} catch (Throwable t) {
 			LOGGER.severe(ExceptionUtils.getStackTrace(t));
 		}
@@ -63,14 +71,33 @@ public class Main {
 				ChangeRecordDoc changeMin = new ChangeRecordDoc();
 				ChangeRecordDoc changeMax = new ChangeRecordDoc();
 				findMaxMinRecords(changeRecordSet, changeMax, changeMin);
-				boolean overlap = detectRecordOverlap(changeMin);
+				overlap = detectRecordOverlap(changeMin);
 				storeChangeRecords(changeRecordSet);
 				storeCrawlRecord(crawlTime, changeMax, changeMin);
 				expiringRecords();
-				doc = Crawler.getDocument(overlap, false);
+				String html = Crawler.getDocument(overlap, false);
+				storeHtmlFile(html);
+				doc = Jsoup.parse(html, "https://en.wikipedia.org");
 			} catch (Throwable t) {
 				LOGGER.severe(ExceptionUtils.getStackTrace(t));
 			}
+		}
+	}
+
+	private static final DateTimeFormatter HTML_FILE_FORMATTER = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
+
+	private static void storeHtmlFile(String html) {
+		File htmlDir = new File("html");
+		if (!htmlDir.exists()) {
+			htmlDir.mkdir();
+		}
+		String htmlFile = "changePage_" + HTML_FILE_FORMATTER.format(LocalDateTime.now()) + ".html";
+		File file = new File(htmlDir, htmlFile);
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
+			out.write(html);
+			LOGGER.info(String.format("storing html body to %s", file.toString()));
+		} catch (IOException e) {
+			LOGGER.severe(e.getMessage());
 		}
 	}
 
