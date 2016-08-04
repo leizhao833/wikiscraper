@@ -4,11 +4,13 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
-public class CrawlRecordDoc {
+public class CrawlRecordDoc extends AbstractDocument {
 
 	public long crawlTime;
 	public long changeTimeMin;
 	public long changeTimeMax;
+
+	private static final String QRY_EXACT = "SELECT * FROM c WHERE c.crawlTime = %d";
 
 	@Override
 	public String toString() {
@@ -43,4 +45,30 @@ public class CrawlRecordDoc {
 		return ZonedDateTime.ofInstant(Instant.ofEpochSecond(changeTimeMax), ZoneOffset.UTC);
 	}
 
+	@Override
+	public String getQueryStringEqual() {
+		return String.format(QRY_EXACT, crawlTime);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (obj instanceof CrawlRecordDoc) {
+			CrawlRecordDoc other = (CrawlRecordDoc) obj;
+			return this.crawlTime == other.crawlTime && this.changeTimeMin == other.changeTimeMin
+					&& this.changeTimeMax == other.changeTimeMax;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		return (int) crawlTime | (int) changeTimeMin | (int) changeTimeMax;
+	}
 }

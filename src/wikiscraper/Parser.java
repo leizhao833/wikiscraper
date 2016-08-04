@@ -9,11 +9,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class ChangePagerParser {
+public class Parser {
 
 	private static final Logger LOGGER = Logger.getGlobal();
 	private final static String XPATH_ROOT_DATE = "div.mw-changeslist > h4";
@@ -26,6 +27,8 @@ public class ChangePagerParser {
 		ChangeRecordDoc changeRecord = null;
 		String dateStr = doc.select(XPATH_ROOT_DATE).first().text();
 		Set<ChangeRecordDoc> recordSet = new HashSet<ChangeRecordDoc>();
+		int modifyCount = 0;
+		int ignoreCount = 0;
 		for (Element elem : doc.select(XPATH_ROOT_LIST)) {
 			Set<String> classNames = elem.classNames();
 			assert (classNames != null);
@@ -34,11 +37,15 @@ public class ChangePagerParser {
 			case CT_MODIFICATION:
 				changeRecord = parseModification(elem, dateStr);
 				recordSet.add(changeRecord);
+				modifyCount++;
 				break;
 			default:
-				LOGGER.info(String.format("Ignoring: %s %s", changeType.toString(), elem.text()));
+				ignoreCount++;
+				LOGGER.fine(String.format("Ignoring: %s %s", changeType.toString(), elem.text()));
 			}
 		}
+		LOGGER.info(String.format("done parsing page, modify(distinct) %d(%d), ignored %d", modifyCount,
+				recordSet.size(), ignoreCount));
 		return recordSet;
 	}
 
@@ -61,7 +68,7 @@ public class ChangePagerParser {
 			}
 			return urlStr;
 		} catch (URISyntaxException e) {
-			e.printStackTrace();
+			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 			return null;
 		}
 

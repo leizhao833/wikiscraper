@@ -10,7 +10,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-public class ChangePageCrawler {
+public class Crawler {
 
 	private static final Logger LOGGER = Logger.getGlobal();
 	private static final Utils<Document> UTILS = new Utils<Document>();
@@ -37,18 +37,18 @@ public class ChangePageCrawler {
 		}
 		if (!overlap) {
 			crawlIntervalInSec /= 2;
-			LOGGER.info(String.format("no overlap - cut crawl interval by half to %d", crawlIntervalInSec));
+			LOGGER.info(String.format("no overlap, cut crawl interval by half to %ds", crawlIntervalInSec));
 		} else {
-			crawlIntervalInSec += Config.crawlIntervalIncInSeconds; // +5min
-			LOGGER.info(String.format("overlap detected - increasing crawl interval by %d to %d",
+			crawlIntervalInSec += Config.crawlIntervalIncInSeconds;
+			LOGGER.info(String.format("overlap detected, increasing crawl interval by %ds to %ds",
 					Config.crawlIntervalIncInSeconds, crawlIntervalInSec));
 		}
 		if (crawlIntervalInSec > Config.crawlIntervalMaxInSeconds) {
 			crawlIntervalInSec = Config.crawlIntervalMaxInSeconds;
-			LOGGER.info(String.format("crawl interval too large - cap it at %d", crawlIntervalInSec));
+			LOGGER.info(String.format("crawl interval too large - cap it at %ds", crawlIntervalInSec));
 		}
 		LocalDateTime targetTime = lastCrawlTime.plusSeconds(crawlIntervalInSec);
-		LOGGER.info(String.format("crawl interval: %d - next crawl at %s", crawlIntervalInSec, targetTime.toString()));
+		LOGGER.info(String.format("crawl interval %ds, next crawl at %s", crawlIntervalInSec, targetTime.toString()));
 		Utils.sleepUntil(targetTime);
 	}
 
@@ -57,33 +57,35 @@ public class ChangePageCrawler {
 			try {
 				url = new URL(Config.wikiChangeUrl);
 			} catch (MalformedURLException e) {
-				LOGGER.severe(String.format("invalid url %s", Config.wikiChangeUrl));
-				LOGGER.severe(ExceptionUtils.getStackTrace(e));
-				LOGGER.severe("sleep forever ...");
-				Utils.sleepUntil(LocalDateTime.now().plusYears(1));
+				StringBuilder sb = new StringBuilder();
+				sb.append(String.format("invalid url %s%n", Config.wikiChangeUrl));
+				sb.append(String.format("%s%n", ExceptionUtils.getStackTrace(e)));
+				sb.append("sleep forever ...");
+				LOGGER.severe(sb.toString());
+				Utils.sleepForever();
 			}
 		}
 		return url;
 	}
 
 	private static Document crawlPage() {
-
-		Callable<Document> c = () -> {
+		LOGGER.info(String.format("begin downloading %s", Config.wikiChangeUrl));
+		Callable<Document> func = () -> {
 			Document doc = Jsoup.parse(getUrl(), 20000);
 			return doc;
 		};
-		
-		LOGGER.info(String.format("begin downloading %s", Config.wikiChangeUrl));
-
 		try {
-			Document doc = UTILS.retry(Config.maxDownloadRetries, 2000, true, c);
-			LOGGER.info(String.format("succeeded"));
+			Document doc = UTILS.retry(Config.maxRetries, Config.retryIntervalInMillis, true, func);
+			LOGGER.info(String.format("download succeeded"));
 			return doc;
 		} catch (Throwable e) {
-			LOGGER.severe(String.format("maximum %d attempts reached. Unable to download the page. Sleep forever ...",
-					Config.maxDownloadRetries));
-			LOGGER.severe(ExceptionUtils.getStackTrace(e));
-			Utils.sleepUntil(LocalDateTime.now().plusYears(1));
+			StringBuilder sb = new StringBuilder();
+			sb.append(String.format("maximum %d attempts reached, unable to download the page%n",
+					Config.maxRetries));
+			sb.append(String.format("%s%n", ExceptionUtils.getStackTrace(e)));
+			sb.append("sleep forever ...");
+			LOGGER.severe(sb.toString());
+			Utils.sleepForever();
 			return null;
 		}
 	}

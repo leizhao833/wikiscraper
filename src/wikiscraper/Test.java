@@ -8,11 +8,14 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		testMisc();
+		testDocEqual();
+		// testMisc();
 		// utilTicksToZonedDateTime();
 		// testUntil();
 		// testUrl();
@@ -20,6 +23,22 @@ public class Test {
 		// testDatabaseAddChangeRecord();
 		// testDatabaseCreate();
 		// testDatetime();
+	}
+
+	private static void testDocEqual() {
+		Set<ChangeRecordDoc> s = new HashSet<ChangeRecordDoc>();
+		ChangeRecordDoc d1 = new ChangeRecordDoc("aaa", 123);
+		ChangeRecordDoc d2 = new ChangeRecordDoc("aaa", 123);
+		ChangeRecordDoc d3 = new ChangeRecordDoc("bbb", 123);
+		System.out.println(String.format("%s.equals(%s) %b", "d1", "d2", d1.equals(d2)));
+		System.out.println(String.format("%s.equals(%s) %b", "d1", "d3", d1.equals(d3)));
+		System.out.println(String.format("%s.equals(%s) %b", "d2", "d3", d2.equals(d3)));
+		System.out.println(String.format("add(%s) %b", "d1", s.add(d1)));
+		System.out.println(String.format("add(%s) %b", "d2", s.add(d2)));
+		System.out.println(String.format("add(%s) %b", "d3", s.add(d3)));
+		for (ChangeRecordDoc d : s) {
+			System.out.println(d.toString());
+		}
 	}
 
 	private static void testMisc() {

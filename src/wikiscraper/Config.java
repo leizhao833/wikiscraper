@@ -9,17 +9,17 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 public class Config {
 
-	private static final boolean PROD = true;
+	public static final boolean PROD = true;
 	private static final Logger LOGGER = Logger.getGlobal();
 	private static final String PROPERTIES_FILENAME = PROD ? "config.prod.properties" : "config.test.properties";
 
-	public static int maxDatabaseQueryRetries;
-	public static int maxDownloadRetries;
+	public static int maxRetries;
 	public static int changeRecordExpiryInDays;
 	public static int crawlRecordExpiryInDays;
 	public static long crawlIntervalMaxInSeconds;
 	public static long crawlIntervalIncInSeconds;
-	public static long intervalBetweenQueriesInMillis;
+	public static long retryIntervalInMillis;
+	public static long queryIntervalInMillis;
 	public static String wikiChangeUrl;
 	public static String changeRecordCollectionId;
 	public static String crawlRecordCollectionId;
@@ -32,23 +32,26 @@ public class Config {
 					.getResourceAsStream(PROPERTIES_FILENAME);
 			Properties prop = new Properties();
 			prop.load(in);
-			maxDatabaseQueryRetries = Integer.parseInt(prop.getProperty("maxDatabaseQueryRetries"));
-			maxDownloadRetries = Integer.parseInt(prop.getProperty("maxDownloadRetries"));
+			maxRetries = Integer.parseInt(prop.getProperty("maxRetries"));
 			changeRecordExpiryInDays = Integer.parseInt(prop.getProperty("changeRecordExpiryInDays"));
 			crawlRecordExpiryInDays = Integer.parseInt(prop.getProperty("crawlRecordExpiryInDays"));
 			crawlIntervalMaxInSeconds = Long.parseLong(prop.getProperty("crawlIntervalMaxInSeconds"));
 			crawlIntervalIncInSeconds = Long.parseLong(prop.getProperty("crawlIntervalIncInSeconds"));
-			intervalBetweenQueriesInMillis = Long.parseLong(prop.getProperty("intervalBetweenQueriesInMillis"));
+			retryIntervalInMillis = Long.parseLong(prop.getProperty("retryIntervalInMillis"));
+			queryIntervalInMillis = Long.parseLong(prop.getProperty("queryIntervalInMillis"));
 			wikiChangeUrl = prop.getProperty("wikiChangeUrl");
 			changeRecordCollectionId = prop.getProperty("changeRecordCollectionId");
 			crawlRecordCollectionId = prop.getProperty("crawlRecordCollectionId");
 			databaseHostName = prop.getProperty("databaseHostName");
 			databaseId = prop.getProperty("databaseId");
 			LOGGER.info("configuration initialization done");
-		} catch (ClassNotFoundException e) {
-			LOGGER.severe(ExceptionUtils.getStackTrace(e));
-		} catch (IOException e) {
-			LOGGER.severe(ExceptionUtils.getStackTrace(e));
+		} catch (ClassNotFoundException | IOException e) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(String.format("failed to load config file %s%n", PROPERTIES_FILENAME));
+			sb.append(String.format("%s%n",ExceptionUtils.getStackTrace(e)));
+			sb.append("sleep forever ...");
+			LOGGER.severe(sb.toString());
+			Utils.sleepForever();
 		}
 	}
 

@@ -18,13 +18,25 @@ public class Utils<V> {
 				if (attempts++ >= maxRetries) {
 					throw e;
 				}
-				long sleepInMillis = backoff ? (long) Math.pow(waitIntervalInMillis, attempts) : waitIntervalInMillis;
+				long sleepInMillis = backoff ? waitIntervalInMillis * (long) Math.pow(2, attempts)
+						: waitIntervalInMillis;
 				try {
 					Thread.sleep(sleepInMillis);
 				} catch (InterruptedException e1) {
 				}
 			}
 		}
+	}
+
+	public static void exceptionFreeSleep(long millis) {
+		try {
+			Thread.sleep(millis);
+		} catch (InterruptedException e) {
+		}
+	}
+
+	public static void sleepForever() {
+		sleepUntil(LocalDateTime.now().plusYears(1));
 	}
 
 	public static void sleepUntil(LocalDateTime next) {
@@ -37,7 +49,7 @@ public class Utils<V> {
 				}
 				return;
 			} catch (InterruptedException e) {
-				LOGGER.warning("Sleeping interruptted. Resuming ...");
+				LOGGER.fine("Sleeping interruptted. Resuming ...");
 			}
 		}
 	}

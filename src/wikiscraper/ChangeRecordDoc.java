@@ -4,7 +4,9 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
-public class ChangeRecordDoc {
+public class ChangeRecordDoc extends AbstractDocument {
+
+	private static final String QRY_EXACT = "SELECT * FROM c WHERE c.url = '%s' AND c.timestamp = %d";
 
 	public String url;
 	public long timestamp;
@@ -51,4 +53,15 @@ public class ChangeRecordDoc {
 			return false;
 		}
 	}
+
+	@Override
+	public int hashCode() {
+		return url.hashCode() | (int) timestamp;
+	}
+
+	@Override
+	public String getQueryStringEqual() {
+		return String.format(QRY_EXACT, url, timestamp);
+	}
+
 }

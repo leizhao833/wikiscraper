@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.logging.FileHandler;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
@@ -24,19 +25,22 @@ public class Main {
 	}
 
 	private static void initialize() {
-		FileHandler handler;
+		FileHandler fileHandler;
 		try {
 			File log = new File("log");
 			if (!log.exists()) {
 				log.mkdir();
 			}
-			handler = new FileHandler("log" + File.separator + "wikiscraper-log.%u.%g.log", 1024 * 1024 * 50, 1000, true);
-		    SimpleFormatter formatter = new SimpleFormatter();
-		    handler.setFormatter(formatter);
-			LOGGER.addHandler(handler);
-		} catch (SecurityException e) {
-			LOGGER.severe(ExceptionUtils.getStackTrace(e));
-		} catch (IOException e) {
+			fileHandler = new FileHandler("log" + File.separator + "wikiscraper-log.%u.%g.log", 1024 * 1024 * 50, 1000,
+					true);
+			SimpleFormatter formatter = new SimpleFormatter();
+			fileHandler.setFormatter(formatter);
+			LOGGER.addHandler(fileHandler);
+			if (!Config.PROD) {
+				fileHandler.setLevel(Level.ALL);
+				LOGGER.setLevel(Level.ALL);
+			}
+		} catch (SecurityException | IOException e) {
 			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
 		Config.initialize();
@@ -47,15 +51,15 @@ public class Main {
 		Document doc = null;
 
 		try {
-			doc = ChangePageCrawler.getDocument(true, true);
+			doc = Crawler.getDocument(true, true);
 		} catch (Throwable t) {
 			LOGGER.severe(ExceptionUtils.getStackTrace(t));
 		}
 
 		while (true) {
 			try {
-				ZonedDateTime crawlTime = ChangePageCrawler.getLastCrawlTime().atZone(ZoneId.systemDefault());
-				Set<ChangeRecordDoc> changeRecordSet = ChangePagerParser.parse(doc);
+				ZonedDateTime crawlTime = Crawler.getLastCrawlTime().atZone(ZoneId.systemDefault());
+				Set<ChangeRecordDoc> changeRecordSet = Parser.parse(doc);
 				ChangeRecordDoc changeMin = new ChangeRecordDoc();
 				ChangeRecordDoc changeMax = new ChangeRecordDoc();
 				findMaxMinRecords(changeRecordSet, changeMax, changeMin);
@@ -63,7 +67,7 @@ public class Main {
 				storeChangeRecords(changeRecordSet);
 				storeCrawlRecord(crawlTime, changeMax, changeMin);
 				expiringRecords();
-				doc = ChangePageCrawler.getDocument(overlap, false);
+				doc = Crawler.getDocument(overlap, false);
 			} catch (Throwable t) {
 				LOGGER.severe(ExceptionUtils.getStackTrace(t));
 			}
@@ -95,6 +99,7 @@ public class Main {
 		int newCount = 0;
 		for (ChangeRecordDoc rec : records) {
 			boolean added = ChangeRecordDao.INSTANCE.add(rec);
+			Utils.exceptionFreeSleep(Config.queryIntervalInMillis);
 			if (added) {
 				newCount++;
 			}
