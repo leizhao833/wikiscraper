@@ -1,5 +1,6 @@
 package wikiscraper;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -12,7 +13,7 @@ public class Config {
 	public static final boolean PROD = true;
 	private static final Logger LOGGER = Logger.getGlobal();
 	private static final String PROPERTIES_FILENAME = PROD ? "config.prod.properties" : "config.test.properties";
-
+	public static String LOCAL_TEST_FILE = "dat" + File.separator + "wikirecentchange.html";
 	public static int maxRetries;
 	public static int changeRecordExpiryInDays;
 	public static int crawlRecordExpiryInDays;
@@ -48,7 +49,7 @@ public class Config {
 		} catch (ClassNotFoundException | IOException e) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(String.format("failed to load config file %s%n", PROPERTIES_FILENAME));
-			sb.append(String.format("%s%n",ExceptionUtils.getStackTrace(e)));
+			sb.append(String.format("%s%n", ExceptionUtils.getStackTrace(e)));
 			sb.append("sleep forever ...");
 			LOGGER.severe(sb.toString());
 			Utils.sleepForever();

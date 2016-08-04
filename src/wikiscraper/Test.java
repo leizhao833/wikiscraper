@@ -1,7 +1,12 @@
 package wikiscraper;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -11,9 +16,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 public class Test {
 
 	public static void main(String[] args) throws Exception {
+		testParse();
 		// testDocEqual();
 		// testMisc();
 		// utilTicksToZonedDateTime();
@@ -23,6 +32,20 @@ public class Test {
 		// testDatabaseAddChangeRecord();
 		// testDatabaseCreate();
 		testDatetime();
+	}
+
+	static void testParse() throws IOException {
+		Document doc = Jsoup.parse(new File(Config.LOCAL_TEST_FILE), Charset.defaultCharset().name(),
+				"https://www.wikipedia.org");
+		Set<ChangeRecordDoc> res = Parser.parse(doc);
+
+		File file = new File("out.txt");
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
+			for (ChangeRecordDoc changeRecordDoc : res) {
+				out.write(changeRecordDoc.toString() + "\n");
+			}
+		} catch (IOException e) {
+		}
 	}
 
 	private static void testDocEqual() {

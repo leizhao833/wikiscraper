@@ -16,7 +16,6 @@ public class Crawler {
 	private static LocalDateTime lastCrawlTime = LocalDateTime.now();
 
 	public static String getDocument(boolean overlap, boolean immediately) {
-		// return Jsoup.parse(LOCAL_TEST_FILE, Charset.defaultCharset().name());
 		waitUntilNextCrawl(overlap, immediately);
 		String html = crawlPage();
 		lastCrawlTime = LocalDateTime.now();

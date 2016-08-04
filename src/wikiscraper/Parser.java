@@ -16,7 +16,7 @@ public class Parser {
 	private static final Logger LOGGER = Logger.getGlobal();
 	private final static String XPATH_ROOT_DATE = "div.mw-changeslist > h4";
 	private final static String XPATH_ROOT_LIST = "div.mw-changeslist > ul.special > li";
-	private final static String XPATH_ENTRY_TITLE = "span.mw-title > a, abbr.wikibase-edit + a";
+	private final static String XPATH_ENTRY_TITLE = "span.mw-title a, abbr.wikibase-edit + a";
 	private final static String XPATH_ENTRY_DATE = "span.mw-changeslist-date";
 	private final static DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
 
