@@ -36,7 +36,7 @@ public class Crawler {
 			LOGGER.info(String.format("overlap [no]. interval=/2 to [%ds]", crawlIntervalInSec));
 		} else {
 			crawlIntervalInSec += Config.crawlIntervalIncInSeconds;
-			LOGGER.info(String.format("overlap [yes]. interval from [%ds] to [%ds]",
+			LOGGER.info(String.format("overlap [yes]. interval+[%ds] to [%ds]",
 					Config.crawlIntervalIncInSeconds, crawlIntervalInSec));
 		}
 		if (crawlIntervalInSec > Config.crawlIntervalMaxInSeconds) {
