@@ -37,15 +37,20 @@ public class Main {
 			if (!log.exists()) {
 				log.mkdir();
 			}
-			fileHandler = new FileHandler("log" + File.separator + "wikiscraper-log.%u.%g.log", 1024 * 1024 * 50, 1000,
-					true);
+			File logPath = new File(
+					System.getProperty("user.home") + File.separator + "wikitemp" + File.separator + "log");
+			if (!logPath.exists()) {
+				logPath.mkdirs();
+			}
+			fileHandler = new FileHandler(logPath.getPath() + File.separator + "wikiscraper-log.%u.%g.log",
+					1024 * 1024 * 50, 1000, true);
 			SimpleFormatter formatter = new SimpleFormatter();
 			fileHandler.setFormatter(formatter);
 			LOGGER.addHandler(fileHandler);
-//			if (!PROD) {
-				fileHandler.setLevel(Level.ALL);
-				LOGGER.setLevel(Level.ALL);
-//			}
+			// if (!PROD) {
+			fileHandler.setLevel(Level.ALL);
+			LOGGER.setLevel(Level.ALL);
+			// }
 		} catch (SecurityException | IOException e) {
 			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
@@ -100,9 +105,10 @@ public class Main {
 	private static final DateTimeFormatter HTML_FILE_FORMATTER = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
 
 	private static File storeHtmlFile(String html, LocalDateTime crawlTime) {
-		File htmlDir = new File("html");
+		File htmlDir = new File(
+				System.getProperty("user.home") + File.separator + "wikitemp" + File.separator + "html");
 		if (!htmlDir.exists()) {
-			htmlDir.mkdir();
+			htmlDir.mkdirs();
 		}
 		String htmlFile = "changePage_" + HTML_FILE_FORMATTER.format(crawlTime) + ".html";
 		File file = new File(htmlDir, htmlFile);
