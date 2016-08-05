@@ -47,7 +47,7 @@ public class Parser {
 				}
 			}
 		}
-		LOGGER.info(String.format("done parsing page, modify(distinct) %d(%d), ignored %d", modifyCount,
+		LOGGER.info(String.format("done parsing page. [changed|distinct|ignored %d|%d|%d]", modifyCount,
 				recordSet.size(), ignoreCount));
 		return recordSet;
 	}
