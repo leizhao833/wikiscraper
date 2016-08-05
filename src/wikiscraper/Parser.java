@@ -14,31 +14,37 @@ import org.jsoup.select.Elements;
 public class Parser {
 
 	private static final Logger LOGGER = Logger.getGlobal();
-	private final static String XPATH_ROOT_DATE = "div.mw-changeslist > h4";
-	private final static String XPATH_ROOT_LIST = "div.mw-changeslist > ul.special > li";
+	private final static String XPATH_ROOT = "div.mw-changeslist";
+	private final static String XPATH_ROOT_LIST = "li";
 	private final static String XPATH_ENTRY_TITLE = "span.mw-title a, abbr.wikibase-edit + a";
 	private final static String XPATH_ENTRY_DATE = "span.mw-changeslist-date";
 	private final static DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
 
 	public static Set<ChangeRecordDoc> parse(Document doc) {
-		ChangeRecordDoc changeRecord = null;
-		String dateStr = doc.select(XPATH_ROOT_DATE).first().text();
+		String dateStr = null;
 		Set<ChangeRecordDoc> recordSet = new HashSet<ChangeRecordDoc>();
 		int modifyCount = 0;
 		int ignoreCount = 0;
-		for (Element elem : doc.select(XPATH_ROOT_LIST)) {
-			Set<String> classNames = elem.classNames();
-			assert (classNames != null);
-			EnumChangeType changeType = detectChangeType(elem.classNames());
-			switch (changeType) {
-			case CT_MODIFICATION:
-				changeRecord = parseModification(elem, dateStr);
-				recordSet.add(changeRecord);
-				modifyCount++;
-				break;
-			default:
-				ignoreCount++;
-				LOGGER.fine(String.format("Ignoring: %s %s", changeType.toString(), elem.text()));
+		for (Element h4ul : doc.select(XPATH_ROOT).first().children()) {
+			if (h4ul.tagName().equals("h4")) {
+				dateStr = h4ul.text();
+			} else if (h4ul.tagName().equals("ul")) {
+				ChangeRecordDoc changeRecord = null;
+				for (Element li : h4ul.select(XPATH_ROOT_LIST)) {
+					Set<String> classNames = li.classNames();
+					assert (classNames != null);
+					EnumChangeType changeType = detectChangeType(li.classNames());
+					switch (changeType) {
+					case CT_MODIFICATION:
+						changeRecord = parseModification(li, dateStr);
+						recordSet.add(changeRecord);
+						modifyCount++;
+						break;
+					default:
+						ignoreCount++;
+						LOGGER.fine(String.format("Ignoring: %s %s", changeType.toString(), li.text()));
+					}
+				}
 			}
 		}
 		LOGGER.info(String.format("done parsing page, modify(distinct) %d(%d), ignored %d", modifyCount,

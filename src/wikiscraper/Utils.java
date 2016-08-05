@@ -10,20 +10,20 @@ public class Utils<V> {
 	private static final Logger LOGGER = Logger.getGlobal();
 
 	public V retry(int maxRetries, long waitIntervalInMillis, boolean backoff, Callable<V> method) throws Throwable {
-		int attempts = 0;
+		int attempts = 1;
 		while (true) {
 			try {
 				return method.call();
 			} catch (Exception e) {
-				if (attempts++ >= maxRetries) {
+				LOGGER.fine(String.format("\tfailed at attempt [%d] with exception %s", attempts, e.getMessage()));
+				if (attempts++ > maxRetries) {
+					LOGGER.fine(String.format("\ttotal attempts exceeding max retries [%d]. give up", maxRetries));
 					throw e;
 				}
 				long sleepInMillis = backoff ? waitIntervalInMillis * (long) Math.pow(2, attempts)
 						: waitIntervalInMillis;
-				try {
-					Thread.sleep(sleepInMillis);
-				} catch (InterruptedException e1) {
-				}
+				LOGGER.fine(String.format("\tbackoff [%b]. sleep for [%dms] and retry", backoff, sleepInMillis));
+				exceptionFreeSleep(sleepInMillis);
 			}
 		}
 	}
@@ -49,7 +49,7 @@ public class Utils<V> {
 				}
 				return;
 			} catch (InterruptedException e) {
-				LOGGER.fine("Sleeping interruptted. Resuming ...");
+				LOGGER.fine("sleeping interruptted. resuming ...");
 			}
 		}
 	}

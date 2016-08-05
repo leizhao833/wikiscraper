@@ -10,9 +10,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 public class Config {
 
-	public static final boolean PROD = true;
 	private static final Logger LOGGER = Logger.getGlobal();
-	private static final String PROPERTIES_FILENAME = PROD ? "config.prod.properties" : "config.test.properties";
+	private static final String PROPERTIES_FILENAME = Main.PROD ? "config.prod.properties" : "config.test.properties";
 	public static String LOCAL_TEST_FILE = "dat" + File.separator + "wikirecentchange.html";
 	public static int maxRetries;
 	public static int changeRecordExpiryInDays;

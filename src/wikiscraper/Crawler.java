@@ -33,18 +33,18 @@ public class Crawler {
 		}
 		if (!overlap) {
 			crawlIntervalInSec /= 2;
-			LOGGER.info(String.format("no overlap, cut crawl interval by half to %ds", crawlIntervalInSec));
+			LOGGER.info(String.format("overlap [no]. interval=/2 to [%ds]", crawlIntervalInSec));
 		} else {
 			crawlIntervalInSec += Config.crawlIntervalIncInSeconds;
-			LOGGER.info(String.format("overlap detected, increasing crawl interval by %ds to %ds",
+			LOGGER.info(String.format("overlap [yes]. interval from [%ds] to [%ds]",
 					Config.crawlIntervalIncInSeconds, crawlIntervalInSec));
 		}
 		if (crawlIntervalInSec > Config.crawlIntervalMaxInSeconds) {
 			crawlIntervalInSec = Config.crawlIntervalMaxInSeconds;
-			LOGGER.info(String.format("crawl interval too large - cap it at %ds", crawlIntervalInSec));
+			LOGGER.info(String.format("interval too larg. cap at [%ds]", crawlIntervalInSec));
 		}
 		LocalDateTime targetTime = lastCrawlTime.plusSeconds(crawlIntervalInSec);
-		LOGGER.info(String.format("crawl interval %ds, next crawl at %s", crawlIntervalInSec, targetTime.toString()));
+		LOGGER.info(String.format("next crawl at [%s]", targetTime.toString()));
 		Utils.sleepUntil(targetTime);
 	}
 

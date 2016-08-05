@@ -21,6 +21,7 @@ import org.jsoup.nodes.Document;
 
 public class Main {
 
+	public static final boolean PROD = true;
 	private static final Logger LOGGER = Logger.getGlobal();
 	private static LocalDate lastExpiringDate = LocalDate.ofEpochDay(0);
 
@@ -41,10 +42,10 @@ public class Main {
 			SimpleFormatter formatter = new SimpleFormatter();
 			fileHandler.setFormatter(formatter);
 			LOGGER.addHandler(fileHandler);
-			if (!Config.PROD) {
+//			if (!PROD) {
 				fileHandler.setLevel(Level.ALL);
 				LOGGER.setLevel(Level.ALL);
-			}
+//			}
 		} catch (SecurityException | IOException e) {
 			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
@@ -73,7 +74,7 @@ public class Main {
 				changeRecordSet = Parser.parse(doc);
 				// delete the html file if parse passed
 				htmlFile.delete();
-				LOGGER.info(String.format("%s deleted", htmlFile.toString()));
+				LOGGER.info(String.format("[%s] deleted", htmlFile.toString()));
 			} catch (Throwable t) {
 				LOGGER.severe(ExceptionUtils.getStackTrace(t));
 			}
@@ -107,7 +108,7 @@ public class Main {
 		File file = new File(htmlDir, htmlFile);
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
 			out.write(html);
-			LOGGER.info(String.format("storing html body to %s", file.toString()));
+			LOGGER.info(String.format("store html to %s", file.toString()));
 		} catch (IOException e) {
 			LOGGER.severe(e.getMessage());
 		}
@@ -128,9 +129,9 @@ public class Main {
 	private static void storeCrawlRecord(ZonedDateTime crawlTime, ChangeRecordDoc max, ChangeRecordDoc min) {
 		CrawlRecordDoc rec = new CrawlRecordDoc(crawlTime.toEpochSecond(), min.timestamp, max.timestamp);
 		if (CrawlRecordDao.INSTANCE.add(rec)) {
-			LOGGER.info(String.format("added crawl record %s into database", rec.toString()));
+			LOGGER.info(String.format("added crawl record [ %s ] into database", rec.toString()));
 		} else {
-			LOGGER.info(String.format("duplicated crawl record existing: %s. Ignore ...", rec.toString()));
+			LOGGER.info(String.format("duplicated crawl record existing: %s. ignore ...", rec.toString()));
 		}
 
 	}
@@ -144,9 +145,9 @@ public class Main {
 			if (added) {
 				newCount++;
 			}
-			LOGGER.fine(String.format("added change record %s %b", rec.toString(), added));
+			LOGGER.fine(String.format("added change record [ %s ] [%b]", rec.toString(), added));
 		}
-		LOGGER.info(String.format("total %d (%d new) change records added to database", records.size(), newCount));
+		LOGGER.info(String.format("[%d(%d new)] change records added to database", records.size(), newCount));
 		return newCount;
 	}
 

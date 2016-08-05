@@ -133,7 +133,7 @@ public abstract class AbstractCollectionDao {
 		} catch (Throwable t) {
 			LOGGER.severe(ExceptionUtils.getStackTrace(t));
 		}
-		LOGGER.info(String.format("deleted %d records older than %s", deletedCount, cutoff.toString()));
+		LOGGER.info(String.format("[%d] records older than [%s] deleted", deletedCount, cutoff.toString()));
 		return deletedCount;
 	}
 
