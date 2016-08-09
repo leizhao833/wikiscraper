@@ -12,10 +12,15 @@ public class Crawler {
 
 	private static final Logger LOGGER = Logger.getGlobal();
 	private static final Utils<String> UTILS = new Utils<String>();
-	private static long crawlIntervalInSec = Config.crawlIntervalMaxInSeconds;
-	private static LocalDateTime lastCrawlTime = LocalDateTime.now();
+	private static long crawlIntervalInSec;
+	private static LocalDateTime lastCrawlTime;
 
-	public static String getDocument(boolean overlap, boolean immediately) {
+	public static void initialize() {
+		crawlIntervalInSec = Config.crawlIntervalMaxInSeconds / 2;
+		lastCrawlTime = LocalDateTime.now();
+	}
+
+	public static String getDocument(float overlap, boolean immediately) {
 		waitUntilNextCrawl(overlap, immediately);
 		String html = crawlPage();
 		lastCrawlTime = LocalDateTime.now();
@@ -26,17 +31,17 @@ public class Crawler {
 		return lastCrawlTime;
 	}
 
-	private static void waitUntilNextCrawl(boolean overlap, boolean immediately) {
+	private static void waitUntilNextCrawl(float overlap, boolean immediately) {
 		if (immediately) {
 			LOGGER.info("start next crawl immediately");
 			return;
 		}
-		if (!overlap) {
+		if (overlap < 0.2) {
 			crawlIntervalInSec /= 2;
-			LOGGER.info(String.format("overlap [no]. interval=/2 to [%ds]", crawlIntervalInSec));
+			LOGGER.info(String.format("overlap [%.1f]. interval=/2 to [%ds]", overlap, crawlIntervalInSec));
 		} else {
 			crawlIntervalInSec += Config.crawlIntervalIncInSeconds;
-			LOGGER.info(String.format("overlap [yes]. interval+[%ds] to [%ds]",
+			LOGGER.info(String.format("overlap [%.1f]. interval+[%ds] to [%ds]", overlap,
 					Config.crawlIntervalIncInSeconds, crawlIntervalInSec));
 		}
 		if (crawlIntervalInSec > Config.crawlIntervalMaxInSeconds) {
@@ -47,7 +52,6 @@ public class Crawler {
 		LOGGER.info(String.format("next crawl at [%s]", targetTime.toString()));
 		Utils.sleepUntil(targetTime);
 	}
-
 
 	private static String crawlPage() {
 		Callable<String> func = () -> {

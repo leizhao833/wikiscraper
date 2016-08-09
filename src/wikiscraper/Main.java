@@ -55,12 +55,12 @@ public class Main {
 			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
 		Config.initialize();
-
+		Crawler.initialize();
 	}
 
 	private static void serviceLoop() {
 		Document doc = null;
-		boolean overlap = true;
+		float overlap = 0.5f;
 		File htmlFile = null;
 		LocalDateTime crawlTime = null;
 
@@ -88,7 +88,7 @@ public class Main {
 				ChangeRecordDoc changeMax = new ChangeRecordDoc();
 				findMaxMinRecords(changeRecordSet, changeMax, changeMin);
 				int added = storeChangeRecords(changeRecordSet);
-				overlap = added < changeRecordSet.size();
+				overlap = 1 - added / (float) changeRecordSet.size();
 				storeCrawlRecord(crawlTime.atZone(ZoneId.systemDefault()), changeMax, changeMin);
 				expiringRecords();
 

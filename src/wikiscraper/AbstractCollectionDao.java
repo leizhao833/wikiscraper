@@ -93,7 +93,7 @@ public abstract class AbstractCollectionDao {
 			return null;
 		};
 		try {
-			UTILS.retry(Config.maxRetries, Config.retryIntervalInMillis, false, func);
+			UTILS.retry(Config.maxRetries, Config.retryIntervalInMillis, true, func);
 		} catch (Throwable e) {
 			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
@@ -126,7 +126,7 @@ public abstract class AbstractCollectionDao {
 					documentClient.deleteDocument(doc.getSelfLink(), null);
 					return null;
 				};
-				UTILS.retry(Config.maxRetries, Config.retryIntervalInMillis, false, func);
+				UTILS.retry(Config.maxRetries, Config.retryIntervalInMillis, true, func);
 				Utils.exceptionFreeSleep(Config.queryIntervalInMillis);
 				deletedCount++;
 			}
