@@ -1,0 +1,7 @@
+[Unit]
+Description=WikiScraper service
+[Service]
+ExecStart=/home/leizh/bin/wikiscraper.sh
+User=leizh
+Restart=always
+[Install]
