@@ -21,7 +21,7 @@ import org.jsoup.nodes.Document;
 
 public class Main {
 
-	public static final boolean PROD = false;
+	public static final boolean PROD = true;
 	private static final Logger LOGGER = Logger.getGlobal();
 	private static LocalDate lastExpiringDate = LocalDate.ofEpochDay(0);
 
