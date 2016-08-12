@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,11 +15,12 @@ import org.jsoup.select.Elements;
 public class Parser {
 
 	private static final Logger LOGGER = Logger.getGlobal();
-	private final static String XPATH_ROOT = "div.mw-changeslist";
-	private final static String XPATH_ROOT_LIST = "li";
-	private final static String XPATH_ENTRY_TITLE = "span.mw-title a, abbr.wikibase-edit + a";
-	private final static String XPATH_ENTRY_DATE = "span.mw-changeslist-date";
-	private final static DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
+	private static final String XPATH_ROOT = "div.mw-changeslist";
+	private static final String XPATH_ROOT_LIST = "li";
+	private static final String XPATH_ENTRY_TITLE = "span.mw-title a, abbr.wikibase-edit + a";
+	private static final String XPATH_ENTRY_DATE = "span.mw-changeslist-date";
+	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
+	private static final Pattern PATTERN_FILTER = Pattern.compile("^https?://([a-z]{2})\\.wikipedia\\.org/wiki/(.+)");
 
 	public static Set<ChangeRecordDoc> parse(Document doc) {
 		String dateStr = null;
@@ -37,6 +39,11 @@ public class Parser {
 					switch (changeType) {
 					case CT_MODIFICATION:
 						changeRecord = parseModification(li, dateStr);
+						if (changeRecord == null) {
+							ignoreCount++;
+							LOGGER.fine(String.format("Filtering: %s %s", changeType.toString(), li.text()));
+							continue;
+						}
 						recordSet.add(changeRecord);
 						modifyCount++;
 						break;
@@ -55,11 +62,19 @@ public class Parser {
 	private static ChangeRecordDoc parseModification(Element elem, String dateStr) {
 		Elements elems = elem.select(XPATH_ENTRY_TITLE);
 		String urlStr = elems.first().attr("abs:href");
+		if (filter(urlStr)) {
+			return null;
+		}
 		String timeStr = elem.select(XPATH_ENTRY_DATE).text();
 		String dateTimeStr = dateStr + ' ' + timeStr;
 		LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, DATETIME_FORMATTER);
 		long timestamp = dateTime.toEpochSecond(ZoneOffset.UTC);
 		return new ChangeRecordDoc(urlStr, timestamp);
+	}
+
+
+	public static boolean filter(String url) {
+		return !PATTERN_FILTER.matcher(url).matches();
 	}
 
 	private static EnumChangeType detectChangeType(Set<String> classNames) {
@@ -83,5 +98,18 @@ public class Parser {
 			}
 		}
 		return EnumChangeType.CT_UNKNOWN;
+	}
+
+	public static void main(String[] args) throws Exception {
+		testFilter();
+	}
+
+	private static void testFilter() {
+		String u = "https://en.wikipedia.org/wiki/Microsoft";
+		System.out.println(String.format("%s (%b)", u, filter(u)));
+		u = "https://fr.wikipedia.org/wiki/Microsoft";
+		System.out.println(String.format("%s (%b)", u, filter(u)));
+		u = "https://en.wikipedia.org/w/index.php?title=Arlie_Honeycutt&curid=36300049&diff=734172160&oldid=721926619";
+		System.out.println(String.format("%s (%b)", u, filter(u)));
 	}
 }
