@@ -49,7 +49,7 @@ public class Utils<V> {
 				}
 				return;
 			} catch (InterruptedException e) {
-				LOGGER.fine("sleeping interruptted. resuming ...");
+				LOGGER.fine("sleeping interrupted. resuming to sleep ...");
 			}
 		}
 	}
