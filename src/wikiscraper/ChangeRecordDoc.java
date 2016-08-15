@@ -4,6 +4,12 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
+/**
+ * The wikipedia change record, including the entity URL and its time of change.
+ * 
+ * @author leizh
+ *
+ */
 public class ChangeRecordDoc extends AbstractDocument {
 
 	private static final String QRY_EXACT = "SELECT * FROM c WHERE c.url = '%s' AND c.timestamp = %d";

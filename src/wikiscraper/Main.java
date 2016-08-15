@@ -19,6 +19,17 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+/**
+ * This scraper downloads the wikipedia change log page (URL by wikiChangeUrl in
+ * properties file) in a dynamic adjusted frequency, parses it for change
+ * records constituted of URL and time stamps pair, and stores the records in
+ * DocumentDB. The scraper also stores the crawl history in the database, of
+ * which each record includes the crawl time and the time range of the change
+ * history.
+ * 
+ * @author leizh
+ *
+ */
 public class Main {
 
 	public static final boolean PROD = true;
@@ -30,6 +41,9 @@ public class Main {
 		serviceLoop();
 	}
 
+	/**
+	 * Initialize logger, configuration, and crawler.
+	 */
 	private static void initialize() {
 		FileHandler fileHandler;
 		try {
@@ -37,8 +51,8 @@ public class Main {
 			if (!log.exists()) {
 				log.mkdir();
 			}
-			File logPath = new File(
-					System.getProperty("user.home") + File.separator + "wikitemp" + File.separator + "log");
+			File logPath = new File(System.getProperty("user.home") + File.separator + "wikitemp" + File.separator
+					+ "log");
 			if (!logPath.exists()) {
 				logPath.mkdirs();
 			}
@@ -47,10 +61,10 @@ public class Main {
 			SimpleFormatter formatter = new SimpleFormatter();
 			fileHandler.setFormatter(formatter);
 			LOGGER.addHandler(fileHandler);
-			// if (!PROD) {
-			fileHandler.setLevel(Level.ALL);
-			LOGGER.setLevel(Level.ALL);
-			// }
+			if (!PROD) {
+				fileHandler.setLevel(Level.ALL);
+				LOGGER.setLevel(Level.ALL);
+			}
 		} catch (SecurityException | IOException e) {
 			LOGGER.severe(ExceptionUtils.getStackTrace(e));
 		}
@@ -65,9 +79,12 @@ public class Main {
 		LocalDateTime crawlTime = null;
 
 		try {
+			// step 1: download the change page
 			String html = Crawler.getDocument(overlap, true);
 			crawlTime = Crawler.getLastCrawlTime();
+			// step 2: store the html into a temporary file
 			htmlFile = storeHtmlFile(html, crawlTime);
+			// step 3: convert the html to DOM tree
 			doc = Jsoup.parse(html, "https://en.wikipedia.org");
 		} catch (Throwable t) {
 			LOGGER.severe(ExceptionUtils.getStackTrace(t));
@@ -76,22 +93,39 @@ public class Main {
 		while (true) {
 			Set<ChangeRecordDoc> changeRecordSet = null;
 			try {
+				// step 4: parse the DOM tree for change records
 				changeRecordSet = Parser.parse(doc);
-				// delete the html file if parse passed
+				// step 5: delete the html file if parse succeeded
 				htmlFile.delete();
 				LOGGER.info(String.format("[%s] deleted", htmlFile.toString()));
 			} catch (Throwable t) {
 				LOGGER.severe(ExceptionUtils.getStackTrace(t));
 			}
 			try {
-				ChangeRecordDoc changeMin = new ChangeRecordDoc();
-				ChangeRecordDoc changeMax = new ChangeRecordDoc();
-				findMaxMinRecords(changeRecordSet, changeMax, changeMin);
-				int added = storeChangeRecords(changeRecordSet);
-				overlap = 1 - added / (float) changeRecordSet.size();
-				storeCrawlRecord(crawlTime.atZone(ZoneId.systemDefault()), changeMax, changeMin);
+				if (changeRecordSet != null) {
+					// parsing succeeded
+					// step 6: store the change records to DB
+					int added = storeChangeRecords(changeRecordSet);
+					// step 7: calculate overlap rate between the current record
+					// set and the previous one. High rate indicates crawl
+					// frequency is too high. This is used in crawl frequency
+					// estimation in Crawler.getDocument();
+					overlap = 1 - added / (float) changeRecordSet.size();
+
+					// step 8: store crawl record into DB
+					ChangeRecordDoc changeMin = new ChangeRecordDoc();
+					ChangeRecordDoc changeMax = new ChangeRecordDoc();
+					findMaxMinRecords(changeRecordSet, changeMax, changeMin);
+					storeCrawlRecord(crawlTime.atZone(ZoneId.systemDefault()), changeMax, changeMin);
+				} else {
+					// parsing failed, do nothing for this round
+					overlap = 1;
+				}
+				// step 9: delete records that have expired according to
+				// configuration
 				expiringRecords();
 
+				// back to loop step 1
 				String html = Crawler.getDocument(overlap, false);
 				crawlTime = Crawler.getLastCrawlTime();
 				htmlFile = storeHtmlFile(html, crawlTime);
@@ -105,8 +139,7 @@ public class Main {
 	private static final DateTimeFormatter HTML_FILE_FORMATTER = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
 
 	private static File storeHtmlFile(String html, LocalDateTime crawlTime) {
-		File htmlDir = new File(
-				System.getProperty("user.home") + File.separator + "wikitemp" + File.separator + "html");
+		File htmlDir = new File(System.getProperty("user.home") + File.separator + "wikitemp" + File.separator + "html");
 		if (!htmlDir.exists()) {
 			htmlDir.mkdirs();
 		}
@@ -121,6 +154,9 @@ public class Main {
 		return file;
 	}
 
+	/**
+	 * Deleting the expired records from DB once a day
+	 */
 	private static void expiringRecords() {
 		LocalDate today = LocalDate.now();
 		if (today.compareTo(lastExpiringDate) > 0) {
@@ -157,6 +193,10 @@ public class Main {
 		return newCount;
 	}
 
+	/**
+	 * Finding the two records among all changes that have the smallest and
+	 * largest time stamp respectively.
+	 */
 	private static void findMaxMinRecords(Set<ChangeRecordDoc> records, ChangeRecordDoc max, ChangeRecordDoc min) {
 		ChangeRecordDoc maxPtr = new ChangeRecordDoc(null, 0);
 		ChangeRecordDoc minPtr = new ChangeRecordDoc(null, Long.MAX_VALUE);

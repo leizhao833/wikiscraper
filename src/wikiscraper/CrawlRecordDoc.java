@@ -4,6 +4,13 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
+/**
+ * The crawl record, including the crawl time as well as the time range of
+ * changes
+ * 
+ * @author leizh
+ *
+ */
 public class CrawlRecordDoc extends AbstractDocument {
 
 	public long crawlTime;

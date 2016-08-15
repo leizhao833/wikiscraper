@@ -72,7 +72,10 @@ public class Parser {
 		return new ChangeRecordDoc(urlStr, timestamp);
 	}
 
-
+	/**
+	 * This is the same filter applied in DSI WikiFDA. It eliminates URLs that
+	 * are not supposed to be included in the testset.
+	 */
 	public static boolean filter(String url) {
 		return !PATTERN_FILTER.matcher(url).matches();
 	}

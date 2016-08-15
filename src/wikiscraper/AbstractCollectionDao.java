@@ -61,8 +61,9 @@ public abstract class AbstractCollectionDao {
 
 	protected DocumentCollection getCollection() {
 		if (collectionCache == null) {
-			List<DocumentCollection> collectionList = documentClient.queryCollections(getDatabase().getSelfLink(),
-					"SELECT * FROM root r WHERE r.id='" + collectionId + "'", null).getQueryIterable().toList();
+			List<DocumentCollection> collectionList = documentClient
+					.queryCollections(getDatabase().getSelfLink(),
+							"SELECT * FROM root r WHERE r.id='" + collectionId + "'", null).getQueryIterable().toList();
 			if (collectionList.size() > 0) {
 				collectionCache = collectionList.get(0);
 			} else {
@@ -72,9 +73,8 @@ public abstract class AbstractCollectionDao {
 					collectionDefinition.setId(collectionId);
 					RequestOptions requestOptions = new RequestOptions();
 					requestOptions.setOfferType("S1");
-					return documentClient
-							.createCollection(getDatabase().getSelfLink(), collectionDefinition, requestOptions)
-							.getResource();
+					return documentClient.createCollection(getDatabase().getSelfLink(), collectionDefinition,
+							requestOptions).getResource();
 				};
 				try {
 					collectionCache = utils.retry(Config.maxRetries, Config.retryIntervalInMillis, true, func);
