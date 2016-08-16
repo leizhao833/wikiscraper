@@ -34,6 +34,8 @@ public abstract class AbstractCollectionDao {
 	protected abstract String getCollectionId();
 
 	protected abstract String getQueryStringOlderThan(long timestamp);
+	
+	protected abstract int getDefaultExpiryInSeconds();
 
 	private Database getDatabase() {
 		if (databaseCache == null) {
@@ -71,6 +73,7 @@ public abstract class AbstractCollectionDao {
 				Callable<DocumentCollection> func = () -> {
 					DocumentCollection collectionDefinition = new DocumentCollection();
 					collectionDefinition.setId(collectionId);
+					collectionDefinition.set("defaultTtl", getDefaultExpiryInSeconds());
 					RequestOptions requestOptions = new RequestOptions();
 					requestOptions.setOfferType("S1");
 					return documentClient.createCollection(getDatabase().getSelfLink(), collectionDefinition,

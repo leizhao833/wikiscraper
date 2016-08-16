@@ -123,7 +123,9 @@ public class Main {
 				}
 				// step 9: delete records that have expired according to
 				// configuration
-				expiringRecords();
+				// update: disabled due to long run time. Using collection level
+				// expiry setting instead.
+				// expiringRecords();
 
 				// back to loop step 1
 				String html = Crawler.getDocument(overlap, false);

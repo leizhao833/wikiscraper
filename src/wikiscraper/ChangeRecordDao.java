@@ -22,4 +22,9 @@ public class ChangeRecordDao extends AbstractCollectionDao {
 		return String.format(QRY_TIMESTAMP_LE, timestamp);
 	}
 
+	@Override
+	protected int getDefaultExpiryInSeconds() {
+		return Config.changeRecordExpiryInDays * 86400;
+	}
+
 }

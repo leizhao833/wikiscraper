@@ -22,10 +22,12 @@ import org.jsoup.nodes.Document;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		testParse();
+//		testParse();
 		// testDocEqual();
 		// testMisc();
-		// utilTicksToZonedDateTime();
+//		 utilTicksToZonedDateTime();
+		 zonedDateTimeToTicks();
+
 		// testUntil();
 		// testUrl();
 		// testDatabaseAddCrawlRecord();
@@ -68,8 +70,13 @@ public class Test {
 		System.out.println(System.getProperty("user.home"));
 	}
 
+	private static void zonedDateTimeToTicks() {
+		ZonedDateTime time = ZonedDateTime.parse("2016-08-15T00:00:00Z");
+		System.out.println(time.toEpochSecond());
+	}
+	
 	private static void utilTicksToZonedDateTime() {
-		long timestamp = 1470206820;
+		long timestamp = 1470855240;
 		ZonedDateTime time = ZonedDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneOffset.UTC);
 		System.out.println(time);
 	}

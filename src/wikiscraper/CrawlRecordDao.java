@@ -21,5 +21,10 @@ public class CrawlRecordDao extends AbstractCollectionDao {
 	public String getQueryStringOlderThan(long timestamp) {
 		return String.format(QRY_CRAWLTIME_LE, timestamp);
 	}
+	
+	@Override
+	protected int getDefaultExpiryInSeconds() {
+		return Config.crawlRecordExpiryInDays * 86400;
+	}
 
 }
