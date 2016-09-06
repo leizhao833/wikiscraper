@@ -44,9 +44,13 @@ public class Crawler {
 			LOGGER.info(String.format("overlap [%.1f]. interval+[%ds] to [%ds]", overlap,
 					Config.crawlIntervalIncInSeconds, crawlIntervalInSec));
 		}
+		if (crawlIntervalInSec < Config.crawlIntervalMinInSeconds) {
+			crawlIntervalInSec = Config.crawlIntervalMinInSeconds;
+			LOGGER.info(String.format("interval too small. set to min [%ds]", crawlIntervalInSec));
+		}
 		if (crawlIntervalInSec > Config.crawlIntervalMaxInSeconds) {
 			crawlIntervalInSec = Config.crawlIntervalMaxInSeconds;
-			LOGGER.info(String.format("interval too larg. cap at [%ds]", crawlIntervalInSec));
+			LOGGER.info(String.format("interval too large. cap at max [%ds]", crawlIntervalInSec));
 		}
 		LocalDateTime targetTime = lastCrawlTime.plusSeconds(crawlIntervalInSec);
 		LOGGER.info(String.format("next crawl at [%s]", targetTime.toString()));

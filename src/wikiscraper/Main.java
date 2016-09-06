@@ -199,7 +199,7 @@ public class Main {
 	 * Finding the two records among all changes that have the smallest and
 	 * largest time stamp respectively.
 	 */
-	private static void findMaxMinRecords(Set<ChangeRecordDoc> records, ChangeRecordDoc max, ChangeRecordDoc min) {
+	public static void findMaxMinRecords(Set<ChangeRecordDoc> records, ChangeRecordDoc max, ChangeRecordDoc min) {
 		ChangeRecordDoc maxPtr = new ChangeRecordDoc(null, 0);
 		ChangeRecordDoc minPtr = new ChangeRecordDoc(null, Long.MAX_VALUE);
 		for (ChangeRecordDoc changeRecord : records) {

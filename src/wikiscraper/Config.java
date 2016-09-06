@@ -16,6 +16,7 @@ public class Config {
 	public static int maxRetries;
 	public static int changeRecordExpiryInDays;
 	public static int crawlRecordExpiryInDays;
+	public static long crawlIntervalMinInSeconds;
 	public static long crawlIntervalMaxInSeconds;
 	public static long crawlIntervalIncInSeconds;
 	public static long retryIntervalInMillis;
@@ -35,6 +36,7 @@ public class Config {
 			maxRetries = Integer.parseInt(prop.getProperty("maxRetries"));
 			changeRecordExpiryInDays = Integer.parseInt(prop.getProperty("changeRecordExpiryInDays"));
 			crawlRecordExpiryInDays = Integer.parseInt(prop.getProperty("crawlRecordExpiryInDays"));
+			crawlIntervalMinInSeconds = Long.parseLong(prop.getProperty("crawlIntervalMinInSeconds"));
 			crawlIntervalMaxInSeconds = Long.parseLong(prop.getProperty("crawlIntervalMaxInSeconds"));
 			crawlIntervalIncInSeconds = Long.parseLong(prop.getProperty("crawlIntervalIncInSeconds"));
 			retryIntervalInMillis = Long.parseLong(prop.getProperty("retryIntervalInMillis"));

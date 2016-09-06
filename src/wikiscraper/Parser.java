@@ -22,6 +22,31 @@ public class Parser {
 	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
 	private static final Pattern PATTERN_FILTER = Pattern.compile("^https?://([a-z]{2})\\.wikipedia\\.org/wiki/(.+)");
 
+	public static long[] getChangeLogTimeRange(Document doc) {
+		String dateStr = null;
+		long min = Long.MAX_VALUE;
+		long max = Long.MIN_VALUE;
+		for (Element h4ul : doc.select(XPATH_ROOT).first().children()) {
+			if (h4ul.tagName().equals("h4")) {
+				dateStr = h4ul.text();
+			} else if (h4ul.tagName().equals("ul")) {
+				for (Element span : h4ul.select(XPATH_ENTRY_DATE)) {
+					String timeStr = span.text();
+					String dateTimeStr = dateStr + ' ' + timeStr;
+					LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, DATETIME_FORMATTER);
+					long timestamp = dateTime.toEpochSecond(ZoneOffset.UTC);
+					if (timestamp > max) {
+						max = timestamp;
+					}
+					if (timestamp < min) {
+						min = timestamp;
+					}
+				}
+			}
+		}
+		return new long[] { min, max };
+	}
+
 	public static Set<ChangeRecordDoc> parse(Document doc) {
 		String dateStr = null;
 		Set<ChangeRecordDoc> recordSet = new HashSet<ChangeRecordDoc>();
