@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -34,7 +33,6 @@ public class Main {
 
 	public static final boolean PROD = true;
 	private static final Logger LOGGER = Logger.getGlobal();
-	private static LocalDate lastExpiringDate = LocalDate.ofEpochDay(0);
 
 	public static void main(String[] args) {
 		initialize();
@@ -154,20 +152,6 @@ public class Main {
 			LOGGER.severe(e.getMessage());
 		}
 		return file;
-	}
-
-	/**
-	 * Deleting the expired records from DB once a day
-	 */
-	private static void expiringRecords() {
-		LocalDate today = LocalDate.now();
-		if (today.compareTo(lastExpiringDate) > 0) {
-			ZonedDateTime changeCutoff = ZonedDateTime.now().minusDays(Config.changeRecordExpiryInDays);
-			ZonedDateTime crawlCutoff = ZonedDateTime.now().minusDays(Config.crawlRecordExpiryInDays);
-			ChangeRecordDao.INSTANCE.deleteOlderThan(changeCutoff);
-			CrawlRecordDao.INSTANCE.deleteOlderThan(crawlCutoff);
-			lastExpiringDate = today;
-		}
 	}
 
 	private static void storeCrawlRecord(ZonedDateTime crawlTime, ChangeRecordDoc max, ChangeRecordDoc min) {
