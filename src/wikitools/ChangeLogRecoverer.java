@@ -52,6 +52,28 @@ public class ChangeLogRecoverer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		// printCrawlIntervals(crawls);
+		printChangeTimeDelay(crawls);
+	}
+
+	private static void printChangeTimeDelay(SortedMap<Long, CrawlRecordDoc> crawls) {
+		SortedMap<Long, Long> delays = new TreeMap<Long, Long>();
+		for (CrawlRecordDoc e : crawls.values()) {
+			Long diff = e.crawlTime - e.changeTimeMax;
+			if (!delays.containsKey(diff)) {
+				delays.put(diff, 1L);
+			} else {
+				Long count = delays.get(diff);
+				delays.remove(diff);
+				delays.put(diff, count + 1);
+			}
+		}
+		for (Map.Entry<Long, Long> e : delays.entrySet()) {
+			System.out.println(String.format("%d\t%d", e.getKey(), e.getValue()));
+		}
+	}
+
+	private static void printCrawlIntervals(SortedMap<Long, CrawlRecordDoc> crawls) {
 		System.out.println();
 		System.out.print(f(crawls.firstKey()));
 		Long max = crawls.get(crawls.firstKey()).changeTimeMax;
