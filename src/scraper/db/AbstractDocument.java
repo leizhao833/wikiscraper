@@ -1,4 +1,4 @@
-package wikiscraper;
+package scraper.db;
 
 public abstract class AbstractDocument {
 

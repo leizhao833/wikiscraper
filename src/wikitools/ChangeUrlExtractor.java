@@ -9,16 +9,18 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import wikiscraper.ChangeRecordDoc;
-import wikiscraper.Parser;
+import scraper.db.ChangeRecordDoc;
+import scraper.wikipedia.Parser;
 
 public class ChangeUrlExtractor {
 	
 	public static void main(String[] args) {
+		Parser parser = new Parser(Logger.getGlobal());
 		String dumpFilePath = "C:\\Users\\leizh\\Downloads\\BlwSfsCrawledWebContentTable.txt";
 //		String dumpFilePath = args[0];
 		System.out.print("Input: " + dumpFilePath);
@@ -32,7 +34,7 @@ public class ChangeUrlExtractor {
 				byte[] bodyBinary = Base64.getDecoder().decode(base64EncodedBody);
 				String body = new String(bodyBinary);
 				Document doc = Jsoup.parse(body, "https://en.wikipedia.org");
-				Set<ChangeRecordDoc> recordSet = Parser.parse(doc);
+				Set<ChangeRecordDoc> recordSet = parser.parse(doc);
 				for (ChangeRecordDoc changeRecordDoc : recordSet) {
 					urls.add(changeRecordDoc.url);
 				}

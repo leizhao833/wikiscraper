@@ -1,4 +1,4 @@
-package wikiscraper;
+package scraper.db;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,11 +12,12 @@ import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.DocumentClient;
 
+import scraper.Utils;
+
 public class DocumentClientFactory {
 
 	private static final Logger LOGGER = Logger.getGlobal();
 	private static String MASTER_KEY;
-
 	private static DocumentClient documentClient;
 
 	public static DocumentClient getDocumentClient() {

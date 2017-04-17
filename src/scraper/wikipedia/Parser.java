@@ -1,4 +1,4 @@
-package wikiscraper;
+package scraper.wikipedia;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -12,15 +12,22 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import scraper.db.ChangeRecordDoc;
+
 public class Parser {
 
-	private static final Logger LOGGER = Logger.getGlobal();
 	private static final String XPATH_ROOT = "div.mw-changeslist";
 	private static final String XPATH_ROOT_LIST = "li";
 	private static final String XPATH_ENTRY_TITLE = "span.mw-title a, abbr.wikibase-edit + a";
 	private static final String XPATH_ENTRY_DATE = "span.mw-changeslist-date";
 	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("d MMMM yyyy HH:mm");
 	private static final Pattern PATTERN_FILTER = Pattern.compile("^https?://([a-z]{2})\\.wikipedia\\.org/wiki/(.+)");
+	
+	private Logger logger;
+
+	public Parser(Logger logger) {
+		this.logger = logger;
+	}
 
 	public static long[] getChangeLogTimeRange(Document doc) {
 		String dateStr = null;
@@ -47,7 +54,7 @@ public class Parser {
 		return new long[] { min, max };
 	}
 
-	public static Set<ChangeRecordDoc> parse(Document doc) {
+	public Set<ChangeRecordDoc> parse(Document doc) {
 		String dateStr = null;
 		Set<ChangeRecordDoc> recordSet = new HashSet<ChangeRecordDoc>();
 		int modifyCount = 0;
@@ -66,7 +73,7 @@ public class Parser {
 						changeRecord = parseModification(li, dateStr);
 						if (changeRecord == null) {
 							ignoreCount++;
-							LOGGER.fine(String.format("Filtering: %s %s", changeType.toString(), li.text()));
+							logger.fine(String.format("Filtering: %s %s", changeType.toString(), li.text()));
 							continue;
 						}
 						recordSet.add(changeRecord);
@@ -74,12 +81,12 @@ public class Parser {
 						break;
 					default:
 						ignoreCount++;
-						LOGGER.fine(String.format("Ignoring: %s %s", changeType.toString(), li.text()));
+						logger.fine(String.format("Ignoring: %s %s", changeType.toString(), li.text()));
 					}
 				}
 			}
 		}
-		LOGGER.info(String.format("done parsing page. [changed|distinct|ignored %d|%d|%d]", modifyCount,
+		logger.info(String.format("done parsing page. [changed|distinct|ignored %d|%d|%d]", modifyCount,
 				recordSet.size(), ignoreCount));
 		return recordSet;
 	}
@@ -101,7 +108,7 @@ public class Parser {
 	 * This is the same filter applied in DSI WikiFDA. It eliminates URLs that
 	 * are not supposed to be included in the testset.
 	 */
-	public static boolean filter(String url) {
+	private static boolean filter(String url) {
 		return !PATTERN_FILTER.matcher(url).matches();
 	}
 

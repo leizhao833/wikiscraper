@@ -1,4 +1,4 @@
-package wikiscraper;
+package scraper.db;
 
 import java.time.Instant;
 import java.time.ZoneOffset;

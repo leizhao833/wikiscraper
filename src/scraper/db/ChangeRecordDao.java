@@ -1,20 +1,23 @@
 /**
  * 
  */
-package wikiscraper;
+package scraper.db;
+
+import scraper.ScraperConfig;
 
 public class ChangeRecordDao extends AbstractCollectionDao {
 
-	public static final ChangeRecordDao INSTANCE = new ChangeRecordDao();
-
 	private static final String QRY_TIMESTAMP_LE = "SELECT * FROM c WHERE c.timestamp < %d";
 
-	private ChangeRecordDao() {
+	private ScraperConfig config;
+
+	public ChangeRecordDao(ScraperConfig config) {
+		this.config = config;
 	}
 
 	@Override
 	protected String getCollectionId() {
-		return Config.changeRecordCollectionId;
+		return config.changeRecordCollectionId;
 	}
 
 	@Override
@@ -24,7 +27,7 @@ public class ChangeRecordDao extends AbstractCollectionDao {
 
 	@Override
 	protected int getDefaultExpiryInSeconds() {
-		return Config.changeRecordExpiryInDays * 86400;
+		return config.changeRecordExpiryInDays * 86400;
 	}
 
 }

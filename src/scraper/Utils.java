@@ -1,4 +1,4 @@
-package wikiscraper;
+package scraper;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;

@@ -1,30 +1,33 @@
 /**
  * 
  */
-package wikiscraper;
+package scraper.db;
+
+import scraper.ScraperConfig;
 
 public class CrawlRecordDao extends AbstractCollectionDao {
 
-	public static final CrawlRecordDao INSTANCE = new CrawlRecordDao();
-
 	private static final String QRY_CRAWLTIME_LE = "SELECT * FROM c WHERE c.crawlTime < %d";
 
-	private CrawlRecordDao() {
+	private ScraperConfig config;
+
+	public CrawlRecordDao(ScraperConfig config) {
+		this.config = config;
 	}
 
 	@Override
 	protected String getCollectionId() {
-		return Config.crawlRecordCollectionId;
+		return config.crawlRecordCollectionId;
 	}
-	
+
 	@Override
 	public String getQueryStringOlderThan(long timestamp) {
 		return String.format(QRY_CRAWLTIME_LE, timestamp);
 	}
-	
+
 	@Override
 	protected int getDefaultExpiryInSeconds() {
-		return Config.crawlRecordExpiryInDays * 86400;
+		return config.crawlRecordExpiryInDays * 86400;
 	}
 
 }

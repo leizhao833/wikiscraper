@@ -1,4 +1,4 @@
-package wikiscraper;
+package scraper.db;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -15,6 +15,8 @@ import com.microsoft.azure.documentdb.DocumentCollection;
 import com.microsoft.azure.documentdb.QueryIterable;
 import com.microsoft.azure.documentdb.RequestOptions;
 
+import scraper.Utils;
+
 public abstract class AbstractCollectionDao {
 
 	private static final Logger LOGGER = Logger.getGlobal();
@@ -22,14 +24,9 @@ public abstract class AbstractCollectionDao {
 	private static final Utils<Void> UTILS = new Utils<Void>();
 	private static Database databaseCache;
 
-	private String collectionId;
 	private DocumentCollection collectionCache;
 
 	protected static DocumentClient documentClient = DocumentClientFactory.getDocumentClient();
-
-	public AbstractCollectionDao() {
-		collectionId = getCollectionId();
-	}
 
 	protected abstract String getCollectionId();
 
@@ -65,14 +62,14 @@ public abstract class AbstractCollectionDao {
 		if (collectionCache == null) {
 			List<DocumentCollection> collectionList = documentClient
 					.queryCollections(getDatabase().getSelfLink(),
-							"SELECT * FROM root r WHERE r.id='" + collectionId + "'", null).getQueryIterable().toList();
+							"SELECT * FROM root r WHERE r.id='" + getCollectionId() + "'", null).getQueryIterable().toList();
 			if (collectionList.size() > 0) {
 				collectionCache = collectionList.get(0);
 			} else {
 				Utils<DocumentCollection> utils = new Utils<DocumentCollection>();
 				Callable<DocumentCollection> func = () -> {
 					DocumentCollection collectionDefinition = new DocumentCollection();
-					collectionDefinition.setId(collectionId);
+					collectionDefinition.setId(getCollectionId());
 					collectionDefinition.set("defaultTtl", getDefaultExpiryInSeconds());
 					RequestOptions requestOptions = new RequestOptions();
 					requestOptions.setOfferType("S1");

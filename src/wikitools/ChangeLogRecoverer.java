@@ -19,8 +19,8 @@ import java.util.TreeMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import wikiscraper.CrawlRecordDoc;
-import wikiscraper.Parser;
+import scraper.db.CrawlRecordDoc;
+import scraper.wikipedia.Parser;
 
 public class ChangeLogRecoverer {
 
