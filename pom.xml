@@ -20,7 +20,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>wikiscraper.Main</mainClass>
+							<mainClass>wikiscraper.scraper.Main</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
