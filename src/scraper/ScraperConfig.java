@@ -14,6 +14,7 @@ public class ScraperConfig {
 	public boolean enabled;
 	public int changeRecordExpiryInDays;
 	public int crawlRecordExpiryInDays;
+	public int changeRecordLimitPerCrawl;
 	public long crawlInitialDelayInSeconds;
 	public long crawlIntervalInSeconds;
 	public String urlString;
@@ -29,6 +30,7 @@ public class ScraperConfig {
 			enabled = Boolean.parseBoolean(prop.getProperty("enabled"));
 			changeRecordExpiryInDays = Integer.parseInt(prop.getProperty("changeRecordExpiryInDays"));
 			crawlRecordExpiryInDays = Integer.parseInt(prop.getProperty("crawlRecordExpiryInDays"));
+			changeRecordLimitPerCrawl = Integer.parseInt(prop.getProperty("changeRecordLimitPerCrawl"));
 			crawlInitialDelayInSeconds = Long.parseLong(prop.getProperty("crawlInitialDelayInSeconds"));
 			crawlIntervalInSeconds = Long.parseLong(prop.getProperty("crawlIntervalInSeconds"));
 			urlString = prop.getProperty("urlString");

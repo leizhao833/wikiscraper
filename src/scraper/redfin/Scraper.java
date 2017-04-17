@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
@@ -28,7 +29,20 @@ public class Scraper extends AbstractScraper {
 	@Override
 	protected Set<ChangeRecordDoc> getChangeRecord(String html) {
 		try {
-			return parser.parse(html);
+			Set<ChangeRecordDoc> docs = parser.parse(html);
+			if (docs.size() > config.changeRecordLimitPerCrawl) {
+				Set<ChangeRecordDoc> limitedSizeDocs = new HashSet<ChangeRecordDoc>(config.changeRecordLimitPerCrawl);
+				int limit = config.changeRecordLimitPerCrawl;
+				for (ChangeRecordDoc d : docs) {
+					if (limit-- == 0) {
+						break;
+					}
+					limitedSizeDocs.add(d);
+				}
+				return limitedSizeDocs;
+			} else {
+				return docs;
+			}
 		} catch (Throwable t) {
 			logger.severe(ExceptionUtils.getStackTrace(t));
 			return null;

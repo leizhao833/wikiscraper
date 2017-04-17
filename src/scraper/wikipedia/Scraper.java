@@ -1,6 +1,7 @@
 package scraper.wikipedia;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -25,7 +26,20 @@ public class Scraper extends AbstractScraper {
 	protected Set<ChangeRecordDoc> getChangeRecord(String html) {
 		try {
 			Document doc = Jsoup.parse(html, "https://en.wikipedia.org");
-			return parser.parse(doc);
+			Set<ChangeRecordDoc> docs = parser.parse(doc);
+			if (docs.size() > config.changeRecordLimitPerCrawl) {
+				Set<ChangeRecordDoc> limitedSizeDocs = new HashSet<ChangeRecordDoc>(config.changeRecordLimitPerCrawl);
+				int limit = config.changeRecordLimitPerCrawl;
+				for (ChangeRecordDoc d : docs) {
+					if (limit-- == 0) {
+						break;
+					}
+					limitedSizeDocs.add(d);
+				}
+				return limitedSizeDocs;
+			} else {
+				return docs;
+			}
 		} catch (Throwable t) {
 			logger.severe(ExceptionUtils.getStackTrace(t));
 			return null;

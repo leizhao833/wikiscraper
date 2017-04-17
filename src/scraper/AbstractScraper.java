@@ -163,7 +163,7 @@ public abstract class AbstractScraper implements Runnable {
 			ChangeRecordDoc changeMax = new ChangeRecordDoc();
 			findMaxMinRecords(changeRecordSet, changeMax, changeMin);
 			storeCrawlRecord(crawlStartTime.atZone(ZoneId.systemDefault()), changeMax, changeMin);
-			logger.warning("Scraping ends.");
+			logger.info("Scraping ends.");
 		} catch (Throwable t) {
 			logger.severe(ExceptionUtils.getStackTrace(t));
 		}
