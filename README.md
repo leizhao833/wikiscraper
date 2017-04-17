@@ -12,12 +12,12 @@ Find jar under target/
 
 Before run, put the database master key in ~/.auth/master
 
-# Temp data
+#  data
 
-Log: ~/.wikitemp/log/wikiscraper-log.%u.%g.log
+Log: ~/.scraperWorkingDirectory/log/[scraper_name]-log.%u.%g.log
 
 Debug: upon parsing failure of a change page, the raw html 
-can be found at ~/.wikitemp/html/changePage_yyyy_MM_dd_HH_mm_ss.html
+can be found at ~/..scraperWorkingDirectory/html/[scraper_name]_yyyy_MM_dd_HH_mm_ss.html/xml
 
 # Ubuntu 16.04 service setup
 
