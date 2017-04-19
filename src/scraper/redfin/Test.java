@@ -18,7 +18,22 @@ public class Test {
 
 	static void testParse() throws IOException {
 		Parser parser = new Parser(Logger.getGlobal());
-		String html = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" >  <url>    <loc>https://www.redfin.com/GA/Cumming/4060-Hunters-Walk-Way-30028/home/24248507</loc>    <lastmod>2017-04-17T07:52:16.930-07:00</lastmod>    <changefreq>daily</changefreq>    <priority>1.0</priority>  </url>  <url>    <loc>https://www.redfin.com/VA/Mechanicsville/8364-Springset-Ln-23116/home/56192668</loc>    <lastmod>2017-04-17T07:52:17.488-07:00</lastmod>    <changefreq>daily</changefreq>    <priority>1.0</priority>  </url>  </urlset>  ";
+		String html = 
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+				+ "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" > "
+				+ "  <url>"
+				+ "    <loc>https://www.redfin.com/GA/Cumming/4060-Hunters-Walk-Way-30028/home/24248507</loc>    "
+				+ "    <lastmod>2017-04-17T07:52:16.930-07:00</lastmod>"
+				+ "    <changefreq>daily</changefreq>"
+				+ "    <priority>1.0</priority>"
+				+ "  </url>"
+				+ "  <url>"
+				+ "    <loc>https://www.redfin.com/VA/Mechanicsville/8364-Springset-Ln-23116/home/56192668</loc>"
+				+ "    <lastmod>2017-04-17T07:52:17.488-07:00</lastmod>"
+				+ "    <changefreq>daily</changefreq>"
+				+ "    <priority>1.0</priority>"
+				+ "  </url>"
+				+ "</urlset>";
 		Set<ChangeRecordDoc> docs = parser.parse(html);
 		for (ChangeRecordDoc d : docs) {
 			System.out.println(d.toString());
